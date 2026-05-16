@@ -1,23 +1,15 @@
 # Anyone seeing this? well don't waste time improving this script.
 # It's messy and just temporary until i get the new version.
 
-# Branch options:
-#   1 = luatools plugin (default)
-#   2 = steamtools-collection plugin
-#   3 = Spacetheme Block Remover         (by waike - waike.dev)
-#   4 = Steam Offline Fix                (by waike - waike.dev)
-#   5 = ST Uninstaller                   (by Potatoes9411)
-#   6 = Steam Bulk Fixer                 (by waike - waike.dev)
-
 param(
     [string]$DownloadLink, # Overwrites the download link (give a direct link)
     [string]$PluginName,   # Overwrites the plugin name
-    [int]$Branch,          # See branch options above
+    [int]$Branch,          # Skip the menu and go straight to a branch (see menu for numbers)
     [switch]$SkipDefender  # Branch 6 only: skips adding Windows Defender exclusions
 )
 
 ## Configure this
-$Host.UI.RawUI.WindowTitle = "Luatools plugin installer | .gg/luatools"
+$Host.UI.RawUI.WindowTitle = "Luatools Tool Suite | .gg/luatools"
 $name = "luatools"
 $link = "https://github.com/madoiscool/ltsteamplugin/releases/latest/download/ltsteamplugin.zip"
 $milleniumTimer = 5 # in seconds for auto-installation
@@ -26,17 +18,14 @@ $milleniumTimer = 5 # in seconds for auto-installation
 chcp 65001 > $null
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
-# Hidden defines
-$steam = (Get-ItemProperty "HKLM:\SOFTWARE\WOW6432Node\Valve\Steam").InstallPath
+# Steam path
+$steam = (Get-ItemProperty "HKLM:\SOFTWARE\WOW6432Node\Valve\Steam" -ErrorAction SilentlyContinue).InstallPath
+if (-not $steam) { $steam = (Get-ItemProperty "HKLM:\SOFTWARE\Valve\Steam" -ErrorAction SilentlyContinue).InstallPath }
+if (-not $steam) { $steam = (Get-ItemProperty "HKCU:\Software\Valve\Steam"  -ErrorAction SilentlyContinue).SteamPath }
+
 $upperName = $name.Substring(0, 1).ToUpper() + $name.Substring(1).ToLower()
 if ($DownloadLink) { $link = $DownloadLink }
 if ($PluginName)   { $name = $PluginName }
-
-# Branch 2: steamtools-collection
-if ($br -eq 2 -or $Branch -eq 2) {
-    $name = "steamtools-collection"
-    $link = "https://github.com/clemdotla/steamtools-collection/releases/download/Latest/steamtools-collection.zip"
-}
 
 
 #### Logging ####
@@ -44,28 +33,137 @@ function Log {
     param ([string]$Type, [string]$Message, [boolean]$NoNewline = $false)
     $Type = $Type.ToUpper()
     switch ($Type) {
-        "OK"   { $foreground = "Green" }
-        "INFO" { $foreground = "Cyan" }
-        "ERR"  { $foreground = "Red" }
-        "WARN" { $foreground = "Yellow" }
-        "LOG"  { $foreground = "Magenta" }
-        "AUX"  { $foreground = "DarkGray" }
-        default { $foreground = "White" }
+        "OK"    { $fg = "Green" }
+        "INFO"  { $fg = "Cyan" }
+        "ERR"   { $fg = "Red" }
+        "WARN"  { $fg = "Yellow" }
+        "LOG"   { $fg = "Magenta" }
+        "AUX"   { $fg = "DarkGray" }
+        default { $fg = "White" }
     }
-    $date = Get-Date -Format "HH:mm:ss"
+    $date   = Get-Date -Format "HH:mm:ss"
     $prefix = if ($NoNewline) { "`r[$date] " } else { "[$date] " }
-    Write-Host $prefix -ForegroundColor "Cyan" -NoNewline
-    Write-Host [$Type] $Message -ForegroundColor $foreground -NoNewline:$NoNewline
+    Write-Host $prefix -ForegroundColor Cyan -NoNewline
+    Write-Host "[$Type] $Message" -ForegroundColor $fg -NoNewline:$NoNewline
 }
 
 function Sep   { Write-Host ("=" * 63) -ForegroundColor Cyan }
 function Blank { Write-Host "" }
 
+$ProgressPreference = 'SilentlyContinue'
+
 Log "WARN" "Hey! Just letting you know that i'm working on a new version combining various scripts of the server"
 Log "AUX"  "Will include language support on THIS script too, luv y'all brazilians"
-Write-Host
+Blank
 
-$ProgressPreference = 'SilentlyContinue'
+
+#### Main menu ####
+function Get-PluginStatus([string]$pluginName) {
+    if (-not $steam) { return "[unknown]" }
+    $dir = Join-Path $steam "plugins"
+    if (-not (Test-Path $dir)) { return "[not installed]" }
+    foreach ($p in Get-ChildItem -Path $dir -Directory -ErrorAction SilentlyContinue) {
+        $jp = Join-Path $p.FullName "plugin.json"
+        if (Test-Path $jp) {
+            $j = try { Get-Content $jp -Raw | ConvertFrom-Json } catch { $null }
+            if ($j -and $j.name -eq $pluginName) { return "[installed]" }
+        }
+    }
+    return "[not installed]"
+}
+
+function Get-SpacethemeStatus {
+    if (-not $steam) { return "[unknown]" }
+    $steamPath = (Get-ItemProperty "HKCU:\Software\Valve\Steam" -ErrorAction SilentlyContinue).SteamPath
+    if ($steamPath -and (Test-Path "$steamPath\steamui\skins\Steam\src\css\regular.css")) { return "[found]" }
+    return "[not found]"
+}
+
+function Write-MainMenu {
+    Clear-Host
+    Sep
+    Write-Host "  Luatools Tool Suite  |  .gg/luatools" -ForegroundColor Cyan
+    Sep
+    Blank
+
+    Write-Host "  INSTALL / UPDATE" -ForegroundColor DarkGray
+    Write-Host "  1   " -ForegroundColor Cyan -NoNewline
+    Write-Host "Install Luatools plugin              " -NoNewline
+    Write-Host (Get-PluginStatus "luatools") -ForegroundColor DarkGray
+
+    Write-Host "  2   " -ForegroundColor Cyan -NoNewline
+    Write-Host "Install steamtools-collection        " -NoNewline
+    Write-Host (Get-PluginStatus "steamtools-collection") -ForegroundColor DarkGray
+
+    Blank
+    Write-Host "  FIXES" -ForegroundColor DarkGray
+
+    Write-Host "  3   " -ForegroundColor Cyan -NoNewline
+    Write-Host "Spacetheme Block Remover             " -NoNewline
+    Write-Host (Get-SpacethemeStatus) -ForegroundColor DarkGray
+    Write-Host "       " -NoNewline
+    Write-Host "Removes the 'get a job loser' block  " -NoNewline
+    Write-Host "by waike" -ForegroundColor DarkGray
+
+    Blank
+    Write-Host "  4   " -ForegroundColor Cyan -NoNewline
+    Write-Host "Steam Offline Fix"
+    Write-Host "       " -NoNewline
+    Write-Host "Fixes Steam stuck on loading icon    " -NoNewline
+    Write-Host "by waike" -ForegroundColor DarkGray
+
+    Blank
+    Write-Host "  6   " -ForegroundColor Cyan -NoNewline
+    Write-Host "Steam Bulk Fixer"
+    Write-Host "       " -NoNewline
+    Write-Host "Runs various Steam/Steamtools fixes  " -NoNewline
+    Write-Host "by waike" -ForegroundColor DarkGray
+
+    Blank
+    Write-Host "  OTHER" -ForegroundColor DarkGray
+
+    Write-Host "  5   " -ForegroundColor Cyan -NoNewline
+    Write-Host "ST Uninstaller"
+    Write-Host "       " -NoNewline
+    Write-Host "Full Steamtools/Luatools uninstaller " -NoNewline
+    Write-Host "by Potatoes9411" -ForegroundColor DarkGray
+
+    Blank
+    Write-Host "  Q   " -ForegroundColor DarkGray -NoNewline
+    Write-Host "Quit"
+    Blank
+}
+
+if ($Branch -eq 0) {
+    while ($true) {
+        Write-MainMenu
+        $sel = Read-Host "Select an option"
+        switch ($sel.Trim().ToUpper()) {
+            "1" { $Branch = 1; break }
+            "2" { $Branch = 2; break }
+            "3" { $Branch = 3; break }
+            "4" { $Branch = 4; break }
+            "5" { $Branch = 5; break }
+            "6" {
+                $Branch = 6
+                $defChoice = Read-Host "Skip Windows Defender exclusions? (y/N)"
+                if ($defChoice.Trim() -ieq "y") { $SkipDefender = $true }
+                break
+            }
+            "Q" { exit 0 }
+            default { continue }
+        }
+        if ($Branch -ne 0) { break }
+    }
+    Blank
+}
+
+# Apply branch 2 name/link (works for both -Branch 2 and menu selection)
+if ($Branch -eq 2) {
+    $name = "steamtools-collection"
+    $link = "https://github.com/clemdotla/steamtools-collection/releases/download/Latest/steamtools-collection.zip"
+    $upperName = "Steamtools-collection"
+}
 
 
 #### Branch 3: Spacetheme Block Remover (by waike - waike.dev) ####
@@ -78,19 +176,20 @@ if ($Branch -eq 3) {
     $steamPath = (Get-ItemProperty "HKCU:\Software\Valve\Steam" -ErrorAction SilentlyContinue).SteamPath
     if (-not $steamPath -or -not (Test-Path $steamPath)) {
         Log "ERR" "Steam not found."
+        Read-Host "Press Enter to exit"
         exit 1
     }
 
     $skinDir = "$steamPath\steamui\skins\Steam"
     if (-not (Test-Path $skinDir)) {
-        Log "ERR" "Spacetheme was not found. Exiting."
+        Log "ERR" "Spacetheme was not found. Is it installed as your Steam skin?"
         Read-Host "Press Enter to exit"
         exit 1
     }
 
     $cssFile = "$skinDir\src\css\regular.css"
     if (-not (Test-Path $cssFile)) {
-        Log "ERR" "Spacetheme css files were not found. Exiting."
+        Log "ERR" "Spacetheme CSS files were not found."
         Read-Host "Press Enter to exit"
         exit 1
     }
@@ -98,11 +197,11 @@ if ($Branch -eq 3) {
     Log "WARN" "Closing all Steam processes..."
     Get-Process -Name "steam" -ErrorAction SilentlyContinue | ForEach-Object { $_.CloseMainWindow() | Out-Null }
     Start-Sleep -Seconds 1
-    Get-Process -Name "steam", "steamwebhelper", "steamerrorreporter" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+    Get-Process -Name "steam","steamwebhelper","steamerrorreporter" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
     Start-Sleep -Seconds 1
     Stop-Service "Steam Client Service" -ErrorAction SilentlyContinue
     Start-Sleep -Seconds 1
-    Get-Process -Name "steam", "steamwebhelper", "steamservice", "steamerrorreporter" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+    Get-Process -Name "steam","steamwebhelper","steamservice","steamerrorreporter" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
     Start-Sleep -Seconds 1
 
     $content = Get-Content $cssFile -Raw
@@ -113,9 +212,11 @@ if ($Branch -eq 3) {
         Set-Content $cssFile -Value $content -NoNewline -Encoding UTF8
         Log "OK" "Patched regular.css"
     } else {
-        Log "INFO" "Did not patch regular.css — nothing to replace."
+        Log "INFO" "Nothing to patch in regular.css — block may already be removed."
     }
 
+    Blank
+    Read-Host "Press Enter to exit"
     exit
 }
 
@@ -128,8 +229,11 @@ if ($Branch -eq 4) {
     Blank
 
     $steamPath = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\WOW6432Node\Valve\Steam' -ErrorAction SilentlyContinue).InstallPath
+    if (-not $steamPath) { $steamPath = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Valve\Steam' -ErrorAction SilentlyContinue).InstallPath }
     if (-not $steamPath) {
-        $steamPath = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Valve\Steam' -ErrorAction SilentlyContinue).InstallPath
+        Log "ERR" "Steam path not found."
+        Read-Host "Press Enter to exit"
+        exit 1
     }
 
     $loginUsersPath = Join-Path $steamPath 'config\loginusers.vdf'
@@ -146,6 +250,8 @@ if ($Branch -eq 4) {
         Log "ERR" "loginusers.vdf not found at: $loginUsersPath"
     }
 
+    Blank
+    Read-Host "Press Enter to exit"
     exit
 }
 
@@ -153,10 +259,6 @@ if ($Branch -eq 4) {
 #### Branch 5: ST Uninstaller (by Potatoes9411) ####
 if ($Branch -eq 5) {
     $Host.UI.RawUI.WindowTitle = "Luatools Uninstaller | .gg/luatools"
-    Log "INFO" "ST Uninstaller"
-    Log "AUX"  "Fully uninstalls Steamtools and Luatools."
-    Log "AUX"  "Credit: Potatoes9411"
-    Blank
 
     function Get-SteamPath {
         $entries = @(
@@ -186,8 +288,8 @@ if ($Branch -eq 5) {
         foreach ($p in Get-ChildItem -Path $dir -Directory -ErrorAction SilentlyContinue) {
             $jp = Join-Path $p.FullName "plugin.json"
             if (Test-Path $jp) {
-                $j = Get-Content $jp -Raw | ConvertFrom-Json
-                if ($j.name -eq $name) { return $true }
+                $j = try { Get-Content $jp -Raw | ConvertFrom-Json } catch { $null }
+                if ($j -and $j.name -eq $name) { return $true }
             }
         }
         return $false
@@ -218,8 +320,8 @@ if ($Branch -eq 5) {
         foreach ($p in Get-ChildItem -Path $dir -Directory -ErrorAction SilentlyContinue) {
             $jp = Join-Path $p.FullName "plugin.json"
             if (Test-Path $jp) {
-                $j = Get-Content $jp -Raw | ConvertFrom-Json
-                if ($j.name -eq $name) { $pluginPath = $p.FullName; break }
+                $j = try { Get-Content $jp -Raw | ConvertFrom-Json } catch { $null }
+                if ($j -and $j.name -eq $name) { $pluginPath = $p.FullName; break }
             }
         }
 
@@ -233,8 +335,8 @@ if ($Branch -eq 5) {
 
         $configPath = Join-Path $steam "ext/config.json"
         if (Test-Path $configPath) {
-            $config = (Get-Content $configPath -Raw -Encoding UTF8) | ConvertFrom-Json
-            if ($config.plugins -and $config.plugins.enabledPlugins) {
+            $config = try { (Get-Content $configPath -Raw -Encoding UTF8) | ConvertFrom-Json } catch { $null }
+            if ($config -and $config.plugins -and $config.plugins.enabledPlugins) {
                 $before = @($config.plugins.enabledPlugins)
                 $after  = $before | Where-Object { $_ -ne $name }
                 if ($before.Count -ne $after.Count) {
@@ -330,7 +432,7 @@ if ($Branch -eq 5) {
         Log "OK" "Millennium uninstalled"
     }
 
-    function Restart-Steam {
+    function Restart-SteamApp {
         $exe = Join-Path $steam "steam.exe"
         if (Test-Path $exe) { Start-Process -FilePath $exe; Log "OK" "Steam started" }
         else                { Log "ERR" "steam.exe not found" }
@@ -343,48 +445,48 @@ if ($Branch -eq 5) {
     $doLuas        = $false
     $doKeepPlugins = $false
 
-    function Write-Menu {
+    function Write-UninstallMenu {
         Clear-Host
         Sep
-        Write-Host "  Luatools Uninstaller  |  .gg/luatools" -ForegroundColor Cyan
+        Write-Host "  ST Uninstaller  |  .gg/luatools  |  by Potatoes9411" -ForegroundColor Cyan
         Sep
         Blank
 
-        function Checkbox([bool]$on) { if ($on) { return "[X]" } else { return "[ ]" } }
-        function Status([bool]$found) { if ($found) { return "[installed]" } else { return "[not found]" } }
+        function Checkbox([bool]$on) { if ($on) { "[X]" } else { "[ ]" } }
+        function InstallStatus([bool]$found) { if ($found) { "[installed]" } else { "[not found]" } }
 
-        Write-Host "  WHAT TO UNINSTALL:" -ForegroundColor DarkGray
-        Write-Host "  1  $(Checkbox $doPlugin)    " -ForegroundColor Cyan -NoNewline
-        Write-Host "Plugin ($name)   " -NoNewline
-        Write-Host (Status (Test-PluginInstalled)) -ForegroundColor DarkGray
+        Write-Host "  WHAT TO UNINSTALL" -ForegroundColor DarkGray
+        Write-Host "  1   " -ForegroundColor Cyan -NoNewline
+        Write-Host "$(Checkbox $doPlugin) Plugin ($name)        " -NoNewline
+        Write-Host (InstallStatus (Test-PluginInstalled)) -ForegroundColor DarkGray
 
-        Write-Host "  2  $(Checkbox $doSteamtools) " -ForegroundColor Cyan -NoNewline
-        Write-Host "SteamTools       " -NoNewline
-        Write-Host (Status (Test-SteamtoolsInstalled)) -ForegroundColor DarkGray
+        Write-Host "  2   " -ForegroundColor Cyan -NoNewline
+        Write-Host "$(Checkbox $doSteamtools) SteamTools            " -NoNewline
+        Write-Host (InstallStatus (Test-SteamtoolsInstalled)) -ForegroundColor DarkGray
 
-        Write-Host "  3  $(Checkbox $doMillennium) " -ForegroundColor Cyan -NoNewline
-        Write-Host "Millennium       " -NoNewline
-        Write-Host (Status (Test-MillenniumInstalled)) -ForegroundColor DarkGray
+        Write-Host "  3   " -ForegroundColor Cyan -NoNewline
+        Write-Host "$(Checkbox $doMillennium) Millennium            " -NoNewline
+        Write-Host (InstallStatus (Test-MillenniumInstalled)) -ForegroundColor DarkGray
 
         Blank
-        Write-Host "  OPTIONS:" -ForegroundColor DarkGray
+        Write-Host "  OPTIONS" -ForegroundColor DarkGray
 
         $luaLabel = if ($luaCount -gt 0) { "($luaCount file(s) found)" } else { "(none found)" }
-        Write-Host "  4  $(Checkbox $doLuas)    " -ForegroundColor Cyan -NoNewline
-        Write-Host "Remove SteamTools Lua files  " -NoNewline
+        Write-Host "  4   " -ForegroundColor Cyan -NoNewline
+        Write-Host "$(Checkbox $doLuas) Remove SteamTools Lua files   " -NoNewline
         Write-Host $luaLabel -ForegroundColor DarkGray
 
-        Write-Host "  5  $(Checkbox $doKeepPlugins) " -ForegroundColor Cyan -NoNewline
-        Write-Host "Keep Millennium plugins folder"
+        Write-Host "  5   " -ForegroundColor Cyan -NoNewline
+        Write-Host "$(Checkbox $doKeepPlugins) Keep Millennium plugins folder"
 
         Blank
-        Write-Host "  R" -ForegroundColor Green -NoNewline; Write-Host "  Run"
-        Write-Host "  Q" -ForegroundColor DarkGray -NoNewline; Write-Host "  Quit"
+        Write-Host "  R   " -ForegroundColor Green -NoNewline; Write-Host "Run"
+        Write-Host "  Q   " -ForegroundColor DarkGray -NoNewline; Write-Host "Quit"
         Blank
     }
 
     while ($true) {
-        Write-Menu
+        Write-UninstallMenu
         $key = Read-Host "Toggle option or run"
 
         switch ($key.Trim().ToUpper()) {
@@ -413,7 +515,7 @@ if ($Branch -eq 5) {
 
                 Blank
                 $restart = Read-Host "Restart Steam? (y/n)"
-                if ($restart.Trim() -ieq "y") { Restart-Steam }
+                if ($restart.Trim() -ieq "y") { Restart-SteamApp }
 
                 Blank; Sep
                 Write-Host "  Done!" -ForegroundColor Green
@@ -431,10 +533,6 @@ if ($Branch -eq 6) {
     Log "INFO" "Steam Bulk Fixer"
     Log "AUX"  "Runs a collection of fixes for your Steam client and Steamtools."
     Log "AUX"  "Credit: waike (waike.dev)"
-    if ($SkipDefender) {
-        Log "AUX" "Skipping Windows Defender exclusions (-SkipDefender flag set)"
-        $env:SKIP_DEFENDER = "1"
-    }
     Blank
 
     $IsAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
@@ -442,106 +540,114 @@ if ($Branch -eq 6) {
     )
 
     if (-not $IsAdmin) {
-        Write-Host "Not running as admin, Windows Defender changes won't run." -ForegroundColor Yellow
-        Write-Host ""
+        Log "WARN" "Not running as admin — Windows Defender changes won't run."
+        Blank
         $choice = Read-Host "Are you sure you want to continue? (Y/N)"
         if ($choice -notin @("Y","y")) {
             Log "ERR" "Cancelled."
             Start-Sleep -Seconds 1
             exit
         }
-        Write-Host "Continuing..." -ForegroundColor Green
+        Log "INFO" "Continuing..."
     }
 
-    Write-Host "Starting..." -ForegroundColor Cyan
+    if ($SkipDefender) {
+        Log "AUX" "Skipping Windows Defender exclusions (-SkipDefender flag set)"
+        $env:SKIP_DEFENDER = "1"
+    }
+
+    Blank
+    Log "INFO" "Starting..."
 
     $steamPath = (Get-ItemProperty "HKCU:\Software\Valve\Steam" -ErrorAction SilentlyContinue).SteamPath
     if (-not $steamPath -or -not (Test-Path $steamPath)) {
         Log "ERR" "Steam not found."
+        Read-Host "Press Enter to exit"
         exit
     }
 
-    Write-Host "Steam path: $steamPath"
+    Log "AUX" "Steam path: $steamPath"
 
-    Write-Host "Closing Steam..."
+    Log "WARN" "Closing Steam..."
     while (Get-Process steam, steamwebhelper -ErrorAction SilentlyContinue) {
         Get-Process steam, steamwebhelper -ErrorAction SilentlyContinue | Stop-Process -Force
         Start-Sleep 1
     }
-    Write-Host "Steam closed." -ForegroundColor Green
+    Log "OK" "Steam closed."
 
     if ($IsAdmin -and $env:SKIP_DEFENDER -ne "1") {
-        Write-Host "Adding Defender exclusion..."
+        Log "INFO" "Adding Defender exclusion..."
         try {
             Add-MpPreference -ExclusionPath $steamPath -ErrorAction Stop
-            Write-Host "Defender updated." -ForegroundColor Green
+            Log "OK" "Defender updated."
         } catch {
-            Write-Host "Defender change failed." -ForegroundColor Yellow
+            Log "WARN" "Defender change failed."
         }
     } else {
-        Write-Host "Skipping Defender changes."
+        Log "AUX" "Skipping Defender changes."
     }
 
-    Write-Host "Downloading DLLs..."
+    Log "INFO" "Downloading DLLs..."
     $urls = @{
         "xinput1_4.dll" = "http://update.steamox.com/update"
         "dwmapi.dll"    = "http://update.steamox.com/dwmapi"
     }
     foreach ($dll in $urls.Keys) {
         $dest = Join-Path $steamPath $dll
-        Write-Host "Getting $dll..."
+        Log "LOG" "Getting $dll..."
         try {
             Invoke-RestMethod -Uri $urls[$dll] -OutFile $dest
-            Write-Host "$dll done." -ForegroundColor Green
+            Log "OK" "$dll done."
         } catch {
-            Write-Host "Failed: $dll" -ForegroundColor Red
+            Log "ERR" "Failed to download $dll"
         }
     }
-    Write-Host "DLLs finished."
+    Log "OK" "DLLs finished."
 
-    Write-Host "Running Luatools fixer."
+    Log "INFO" "Running Luatools temporary fixer..."
     try {
         Invoke-Expression (Invoke-RestMethod "https://luatools.vercel.app/temporary-fixer.ps1")
     } catch {
-        Write-Host "Fixer failed." -ForegroundColor Yellow
+        Log "WARN" "Fixer failed."
     }
 
-    Write-Host "Installing LuaTools..."
+    Log "INFO" "Installing LuaTools plugin..."
     try {
         Invoke-Expression (Invoke-RestMethod "https://luatools.vercel.app/install-plugin.ps1")
     } catch {
-        Write-Host "LuaTools failed." -ForegroundColor Yellow
+        Log "WARN" "LuaTools install failed."
     }
 
-    Write-Host "Launching Steam..."
+    Log "INFO" "Launching Steam..."
     Start-Process (Join-Path $steamPath "steam.exe")
 
+    Blank
     Log "OK" "Done."
+    Blank
+    Read-Host "Press Enter to exit"
     exit
 }
 
 
-#### Plugin install flow (branches 1 & 2 / default) ####
+#### Plugin install flow (branches 1 & 2) ####
 
 Get-Process steam -ErrorAction SilentlyContinue | Stop-Process -Force
 
 
-#### Requirements part ####
+#### Requirements ####
 
 function CheckSteamtools {
-    $files = @( "dwmapi.dll", "xinput1_4.dll" )
-    foreach($file in $files) {
-        if (!( Test-Path (Join-Path $steam $file) )) { return $false }
+    $files = @("dwmapi.dll", "xinput1_4.dll")
+    foreach ($file in $files) {
+        if (!(Test-Path (Join-Path $steam $file))) { return $false }
     }
     return $true
 }
 
-$path = Join-Path $steam "dwmapi.dll"
-if ( CheckSteamtools ) {
+if (CheckSteamtools) {
     Log "INFO" "Steamtools already installed"
-}
-else {
-    $script = Invoke-RestMethod "https://luatools.vercel.app/st.ps1"
+} else {
+    $script    = Invoke-RestMethod "https://luatools.vercel.app/st.ps1"
     $keptLines = @()
 
     foreach ($line in $script -split "`n") {
@@ -565,25 +671,23 @@ else {
         [void][System.Console]::ReadKey($true)
         Write-Host
         Log "WARN" "Installing Steamtools"
-
         Invoke-Expression $SteamtoolsScript *> $null
 
-        if ( CheckSteamtools ) {
+        if (CheckSteamtools) {
             Log "OK" "Steamtools installed"
             break
-        }
-        else {
+        } else {
             Log "ERR" "Steamtools installation failed, retrying..."
         }
     }
 }
 
-# Millenium check
+# Millennium check
 $milleniumInstalling = $false
 foreach ($file in @("millennium.dll", "python311.dll")) {
-    if (!( Test-Path (Join-Path $steam $file) )) {
+    if (!(Test-Path (Join-Path $steam $file))) {
 
-        Log "ERR" "Millenium not found, installation process will start in 5 seconds."
+        Log "ERR" "Millenium not found, installation process will start in $milleniumTimer seconds."
         Log "WARN" "Press any key to cancel the installation."
 
         for ($i = $milleniumTimer; $i -ge 0; $i--) {
@@ -597,18 +701,18 @@ foreach ($file in @("millennium.dll", "python311.dll")) {
         }
         Write-Host
 
-        Log "INFO" "Installing millenium"
+        Log "INFO" "Installing Millenium"
         Invoke-Expression "& { $(Invoke-RestMethod 'https://clemdotla.github.io/millennium-installer-ps1/millennium.ps1') } -NoLog -DontStart -SteamPath '$steam'"
         Log "OK" "Millenium done installing"
         $milleniumInstalling = $true
         break
     }
 }
-if ($milleniumInstalling -eq $false) { Log "INFO" "Millenium already installed" }
+if (-not $milleniumInstalling) { Log "INFO" "Millenium already installed" }
 
 
-#### Plugin part ####
-if (!( Test-Path (Join-Path $steam "plugins") )) {
+#### Plugin install ####
+if (!(Test-Path (Join-Path $steam "plugins"))) {
     New-Item -Path (Join-Path $steam "plugins") -ItemType Directory *> $null
 }
 
@@ -617,8 +721,8 @@ $Path = Join-Path $steam "plugins\$name"
 foreach ($plugin in Get-ChildItem -Path (Join-Path $steam "plugins") -Directory) {
     $testpath = Join-Path $plugin.FullName "plugin.json"
     if (Test-Path $testpath) {
-        $json = Get-Content $testpath -Raw | ConvertFrom-Json
-        if ($json.name -eq $name) {
+        $json = try { Get-Content $testpath -Raw | ConvertFrom-Json } catch { $null }
+        if ($json -and $json.name -eq $name) {
             Log "INFO" "Plugin already installed, updating it"
             $Path = $plugin.FullName
             break
@@ -629,12 +733,13 @@ foreach ($plugin in Get-ChildItem -Path (Join-Path $steam "plugins") -Directory)
 $subPath = Join-Path $env:TEMP "$name.zip"
 
 Log "LOG" "Downloading $name"
-if ($DownloadLink) { Log "AUX" $($link) }
+if ($DownloadLink) { Log "AUX" $link }
 Invoke-WebRequest -Uri $link -OutFile $subPath *> $null
-if ( !( Test-Path $subPath ) ) {
+if (!(Test-Path $subPath)) {
     Log "ERR" "Failed to download $name"
     exit
 }
+
 Log "LOG" "Unzipping $name"
 try {
     $zip = [System.IO.Compression.ZipFile]::OpenRead($subPath)
@@ -661,32 +766,31 @@ try {
         }
     }
     $zip.Dispose()
-}
-catch {
-    write-host "Error: $($_.Exception.Message)"
+} catch {
+    Write-Host "Error: $($_.Exception.Message)"
     if ($zip) { $zip.Dispose() }
     Log "ERR" "Extraction failed, trying normal way"
     Expand-Archive -Path $subPath -DestinationPath $Path -Force
 }
 
-if ( Test-Path $subPath ) { Remove-Item $subPath -ErrorAction SilentlyContinue }
+if (Test-Path $subPath) { Remove-Item $subPath -ErrorAction SilentlyContinue }
 
 Log "OK" "$upperName installed"
 
 
-# Removing beta
+# Remove beta flag
 $betaPath = Join-Path $steam "package\beta"
-if ( Test-Path $betaPath ) { Remove-Item $betaPath -Recurse -Force }
+if (Test-Path $betaPath) { Remove-Item $betaPath -Recurse -Force }
 
-# Removing potential x32
+# Remove x32 overrides
 $cfgPath = Join-Path $steam "steam.cfg"
-if ( Test-Path $cfgPath ) { Remove-Item $cfgPath -Recurse -Force }
-Remove-ItemProperty -Path "HKCU:\Software\Valve\Steam"                 -Name "SteamCmdForceX86" -ErrorAction SilentlyContinue
-Remove-ItemProperty -Path "HKLM:\SOFTWARE\Valve\Steam"                 -Name "SteamCmdForceX86" -ErrorAction SilentlyContinue
-Remove-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Valve\Steam"     -Name "SteamCmdForceX86" -ErrorAction SilentlyContinue
+if (Test-Path $cfgPath) { Remove-Item $cfgPath -Recurse -Force }
+Remove-ItemProperty -Path "HKCU:\Software\Valve\Steam"             -Name "SteamCmdForceX86" -ErrorAction SilentlyContinue
+Remove-ItemProperty -Path "HKLM:\SOFTWARE\Valve\Steam"             -Name "SteamCmdForceX86" -ErrorAction SilentlyContinue
+Remove-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Valve\Steam" -Name "SteamCmdForceX86" -ErrorAction SilentlyContinue
 
 
-# Toggling the plugin on
+# Enable plugin in Millennium config
 $configPath = Join-Path $steam "ext/config.json"
 if (-not (Test-Path $configPath)) {
     $config = @{
@@ -695,8 +799,7 @@ if (-not (Test-Path $configPath)) {
     }
     New-Item -Path (Split-Path $configPath) -ItemType Directory -Force | Out-Null
     $config | ConvertTo-Json -Depth 10 | Set-Content $configPath -Encoding UTF8
-}
-else {
+} else {
     $config = (Get-Content $configPath -Raw -Encoding UTF8) | ConvertFrom-Json
 
     function _EnsureProperty {
@@ -724,14 +827,14 @@ else {
 Log "OK" "Plugin enabled"
 
 
-# Result
-Write-Host
+# Launch Steam
+Blank
 if ($milleniumInstalling) { Log "WARN" "Steam startup will be longer, don't panic and don't touch anything in steam!" }
 
 $exe = Join-Path $steam "steam.exe"
 Start-Process $exe -ArgumentList "-clearbeta"
 
-Log "INFO" "Starting steam"
+Log "INFO" "Starting Steam"
 Log "WARN" "Hey so there's a bug where steam may not start"
 Log "WARN" "Hopefully this script fixes it"
 Log "WARN" "But i had to turn updates of millennium off."
