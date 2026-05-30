@@ -170,7 +170,7 @@ function Write-MainMenu {
     Blank
 }
 
-if ($Branch -eq 0) {
+if (-not $Branch) {
     while ($true) {
         Write-MainMenu
         $sel = Read-Host "Select an option"
@@ -823,7 +823,7 @@ if ($Branch -eq 7) {
         $content = Get-Content -Path $LuaPath -ErrorAction Stop
         foreach ($line in $content) {
             if ($line -match 'addappid\s*\(\s*(\d+)\s*,\s*\d+\s*,\s*"[a-fA-F0-9]+"') {
-                $depotId = $matches
+                $depotId = $matches[1]
                 $depots += $depotId
             }
         }
@@ -2014,6 +2014,8 @@ if ($Branch -eq 10) {
 
 #### Plugin install flow (branches 1 & 2) ####
 
+if ($Branch -eq 1 -or $Branch -eq 2) {
+
 Get-Process steam -ErrorAction SilentlyContinue | Stop-Process -Force
 
 
@@ -2226,5 +2228,7 @@ Log "WARN" "In future, they will come back but in the meantime:"
 Log "OK"   "Manually check for updates of millennium if you want up to date."
 Log "AUX"  "Millennium is working now tho (latest version)."
 exit 0
+
+} # end if Branch 1 or 2
 
 } # end :MainLoop
