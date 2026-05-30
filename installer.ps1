@@ -1,4 +1,4 @@
-﻿# Anyone seeing this? well don't waste time improving this script.
+# Anyone seeing this? well don't waste time improving this script.
 # It's messy and just temporary until i get the new version.
 
 param(
@@ -823,7 +823,7 @@ if ($Branch -eq 7) {
         $content = Get-Content -Path $LuaPath -ErrorAction Stop
         foreach ($line in $content) {
             if ($line -match 'addappid\s*\(\s*(\d+)\s*,\s*\d+\s*,\s*"[a-fA-F0-9]+"') {
-                $depotId = $matches[1]
+                $depotId = $matches
                 $depots += $depotId
             }
         }
