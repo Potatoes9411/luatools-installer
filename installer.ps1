@@ -652,8 +652,7 @@ if ($Branch -eq 7) {
 
     function Write-ManifestHeader {
         param([string]$Mode = "github")
-        Clear-Host
-        Write-Host ""
+        # Clickable hyperlinks using ANSI escape sequences (works in Windows Terminal)
         $esc = [char]27
         if ($Mode -eq "github+morrenus") {
             $sourceLink = "$esc]8;;https://hubcapmanifest.com/$esc\Morrenus$esc]8;;$esc\"
@@ -720,7 +719,8 @@ if ($Branch -eq 7) {
         } elseif ($Current -eq $Total) {
             $etaString = "00:00"
         }
-        Write-Host ("`r  BATCH PROGRESS [{0}{1}] {2}% ({3}/{4}) | ETA: {5}    " -f $barFilled, $barEmpty, $percent, $Current, $Total, $etaString) -ForegroundColor Magenta -NoNewline
+        # Removed \r and -NoNewline because this is drawn fresh after a Clear-Host
+        Write-Host ("  BATCH PROGRESS [{0}{1}] {2}% ({3}/{4}) | ETA: {5}" -f $barFilled, $barEmpty, $percent, $Current, $Total, $etaString) -ForegroundColor Magenta
     }
 
     function Write-ManifestStatus {
@@ -906,7 +906,7 @@ if ($Branch -eq 7) {
         $resolvedMode = $env:MANIFEST_MODE
     } else {
         Clear-Host
-        Write-Host ""
+        Write-ManifestHeader -Mode "github"
         Write-Host "  Select download mode:" -ForegroundColor Cyan
         Write-Host ""
         Write-Host "    1. Github Mirror    (No Key Required, Try This First!)" -ForegroundColor White
@@ -923,6 +923,7 @@ if ($Branch -eq 7) {
         }
     }
 
+    Clear-Host
     Write-ManifestHeader -Mode $resolvedMode
 
     $activeApiKey = $null
@@ -1050,21 +1051,22 @@ if ($Branch -eq 7) {
                 continue
             }
             Write-ManifestSuccess "Found $($luaFiles.Count) game configuration files."
+            
+            # Cache all found AppIDs before starting the loop
             foreach ($file in $luaFiles) {
                 if ($file.BaseName -match '^\d+$') {
                     $appIdsToProcess += $file.BaseName
                 }
             }
+            
+            # Give the user a moment to see the scan result before clearing screen
+            Start-Sleep -Seconds 2
         }
 
         if ($appIdsToProcess.Count -eq 0) {
             Write-ManifestErrorMsg "No valid AppIDs found to process."
             continue
         }
-
-        Write-Host ""
-        Write-Host "  ================================================================" -ForegroundColor DarkGray
-        Write-Host ""
 
         $globalSuccessCount = 0
         $globalSkippedCount = 0
@@ -1076,10 +1078,15 @@ if ($Branch -eq 7) {
         for ($appIndex = 0; $appIndex -lt $appIdsToProcess.Count; $appIndex++) {
             $currentAppId = $appIdsToProcess[$appIndex]
 
+            # Clear screen and redraw header for every single app to prevent console spam
+            Clear-Host
+            Write-ManifestHeader -Mode $resolvedMode
+            Write-Host ""
+
+            # Draw Batch Progress Bar at the top if processing multiple apps
             if ($appIdsToProcess.Count -gt 1) {
                 Write-ManifestBatchProgress -Current $appIndex -Total $appIdsToProcess.Count -StartTime $batchStartTime
-                Write-Host ""
-                Write-Host ""
+                Write-Host "`n"
             }
 
             Write-Host "  PROCESSING APPID: $currentAppId" -ForegroundColor Cyan
@@ -1093,6 +1100,7 @@ if ($Branch -eq 7) {
                 Write-ManifestWarningMsg "Lua file not present for AppID $currentAppId"
                 Write-Host "  Expected path: $luaPath" -ForegroundColor DarkGray
                 Write-Host ""
+                Start-Sleep -Seconds 1
                 continue
             }
 
@@ -1106,6 +1114,7 @@ if ($Branch -eq 7) {
             if ($depotIds.Count -eq 0) {
                 Write-ManifestWarningMsg "No depot IDs found in Lua file!"
                 Write-Host ""
+                Start-Sleep -Seconds 1
                 continue
             }
 
@@ -1131,6 +1140,7 @@ if ($Branch -eq 7) {
             if (-not $appInfo -or $appInfo.status -ne "success") {
                 Write-ManifestWarningMsg "Failed to fetch app info from SteamCMD API!"
                 Write-Host ""
+                Start-Sleep -Seconds 1
                 continue
             }
 
@@ -1155,6 +1165,7 @@ if ($Branch -eq 7) {
             if ($downloadQueue.Count -eq 0) {
                 Write-ManifestWarningMsg "No matching manifests found for any depot IDs!"
                 Write-Host ""
+                Start-Sleep -Seconds 1
                 continue
             }
 
@@ -1235,11 +1246,23 @@ if ($Branch -eq 7) {
             Write-ManifestProgressBar -Current $downloadQueue.Count -Total $downloadQueue.Count -Label "App Download Progress" -Color Cyan
             Write-Host ""
             Write-Host ""
+            
+            # Give a small pause at the end of an app so the user can see it hit 100% before the screen wipes
+            if ($appIdsToProcess.Count -gt 1) {
+                Start-Sleep -Milliseconds 500
+            }
         }
 
+        # Draw final 100% batch progress before summary
         if ($appIdsToProcess.Count -gt 1) {
+            Clear-Host
+            Write-ManifestHeader -Mode $resolvedMode
             Write-Host ""
             Write-ManifestBatchProgress -Current $appIdsToProcess.Count -Total $appIdsToProcess.Count -StartTime $batchStartTime
+            Write-Host "`n"
+        } else {
+            Clear-Host
+            Write-ManifestHeader -Mode $resolvedMode
             Write-Host ""
         }
 
@@ -1250,7 +1273,6 @@ if ($Branch -eq 7) {
         # SUMMARY
         # ===========================================================================
 
-        Write-Host ""
         Write-Host ""
         Write-Host "  ================================================================" -ForegroundColor DarkGray
         Write-Host ""
@@ -1315,6 +1337,7 @@ if ($Branch -eq 7) {
         if ($nextChoice -eq "2") { break }
 
         $manifestAppId = $null
+        Clear-Host
         Write-ManifestHeader -Mode $resolvedMode
         Write-Host ""
 
