@@ -1,4 +1,4 @@
-# Anyone seeing this? well don't waste time improving this script.
+﻿# Anyone seeing this? well don't waste time improving this script.
 # It's messy and just temporary until i get the new version.
 
 param(
@@ -138,6 +138,33 @@ function Write-MainMenu {
     Write-Host "SteamTools servers are unavailable   " -ForegroundColor DarkGray
 
     Blank
+    Write-Host "  8   " -ForegroundColor Cyan -NoNewline
+    Write-Host "No Internet Connection Fix"
+    Write-Host "       " -NoNewline
+    Write-Host "Fixes Steam 'No Internet' errors via " -NoNewline
+    Write-Host "Program by SelectivelyGood | Script by Peron" -ForegroundColor DarkGray
+    Write-Host "       " -NoNewline
+    Write-Host "CloudRedirectCLI /stfixer            " -ForegroundColor DarkGray
+
+    Blank
+    Write-Host "  9   " -ForegroundColor Cyan -NoNewline
+    Write-Host "Download / Launch CloudRedirect (GUI)"
+    Write-Host "       " -NoNewline
+    Write-Host "Downloads & launches CloudRedirect   " -NoNewline
+    Write-Host "by Potatoes9411 | App by SelectivelyGood" -ForegroundColor DarkGray
+    Write-Host "       " -NoNewline
+    Write-Host "GUI, or runs it if already installed " -ForegroundColor DarkGray
+
+    Blank
+    Write-Host "  10  " -ForegroundColor Cyan -NoNewline
+    Write-Host "Millennium & SteamTools Reinstaller"
+    Write-Host "       " -NoNewline
+    Write-Host "Reinstalls Millennium + SteamTools,  " -NoNewline
+    Write-Host "by clem.la & melly" -ForegroundColor DarkGray
+    Write-Host "       " -NoNewline
+    Write-Host "fixes hardlink errors on reinstall   " -ForegroundColor DarkGray
+
+    Blank
     Write-Host "  Q   " -ForegroundColor DarkGray -NoNewline
     Write-Host "Quit"
     Blank
@@ -160,6 +187,9 @@ if ($Branch -eq 0) {
                 break
             }
             "7" { $Branch = 7; break }
+            "8" { $Branch = 8; break }
+            "9" { $Branch = 9; break }
+            "10" { $Branch = 10; break }
             "Q" { exit 0 }
             default { continue }
         }
@@ -313,7 +343,19 @@ if ($Branch -eq 5) {
     }
 
     function Test-MillenniumInstalled {
-        return (@("millennium.dll","python311.dll") | Where-Object { Test-Path (Join-Path $steam $_) }).Count -gt 0
+        $millenniumMarkers = @(
+            "millennium.dll",
+            "python311.dll",
+            "python311.zip",
+            "version.dll",
+            "user32.dll",
+            "winmm.dll",
+            "millennium_bootstrap.dll",
+            "ext",
+            "millennium",
+            "pkg"
+        )
+        return ($millenniumMarkers | Where-Object { Test-Path (Join-Path $steam $_) }).Count -gt 0
     }
 
     function Get-LuaFileCount {
@@ -417,7 +459,15 @@ if ($Branch -eq 5) {
     function Uninstall-Millennium([bool]$KeepPlugins) {
         Blank; Sep; Log "INFO" "Uninstalling Millennium"; Sep; Blank
 
-        $milFiles   = @("millennium.dll","python311.dll","python311.zip")
+        $milFiles   = @(
+            "millennium.dll",
+            "python311.dll",
+            "python311.zip",
+            "version.dll",
+            "user32.dll",
+            "winmm.dll",
+            "millennium_bootstrap.dll"
+        )
         $milDirs    = @("ext","plugins","millennium","pkg")
         $foundFiles = $milFiles | Where-Object { Test-Path (Join-Path $steam $_) }
         $foundDirs  = $milDirs  | Where-Object { Test-Path (Join-Path $steam $_) }
@@ -1366,6 +1416,9 @@ if ($Branch -eq 7) {
                 break
             }
             "7" { $Branch = 7; break }
+            "8" { $Branch = 8; break }
+            "9" { $Branch = 9; break }
+            "10" { $Branch = 10; break }
             "Q" { exit 0 }
             default { continue }
         }
@@ -1373,6 +1426,589 @@ if ($Branch -eq 7) {
     }
     Blank
     continue MainLoop
+}
+
+
+#### Branch 8: No Internet Connection Fix (Program by SelectivelyGood | Script by Peron) ####
+if ($Branch -eq 8) {
+    $Host.UI.RawUI.WindowTitle = "No Internet Fix | .gg/luatools"
+
+    # ---- Branch 8: Inner functions ----
+
+    function Write-NoInternetHeader {
+        Clear-Host
+        Sep
+        Write-Host "  No Internet Connection Fix  |  .gg/luatools" -ForegroundColor Cyan
+        Sep
+        Blank
+        Write-Host "  Fixes Steam 'No Internet Connection' errors by redirecting" -ForegroundColor White
+        Write-Host "  Steam's update servers through CloudRedirectCLI (/stfixer)." -ForegroundColor White
+        Blank
+        Write-Host "  CloudRedirectCLI" -NoNewline -ForegroundColor Cyan
+        Write-Host " by SelectivelyGood  |  Script by Peron" -ForegroundColor DarkGray
+        Blank
+    }
+
+    function Write-NoInternetMenu {
+        Write-NoInternetHeader
+        Write-Host "  HOW TO USE THIS FIX" -ForegroundColor DarkGray
+        Write-Host "  1. Open PowerShell as Administrator" -ForegroundColor White
+        Write-Host "     (Press " -NoNewline; Write-Host "Ctrl + Shift + Enter" -ForegroundColor Cyan -NoNewline; Write-Host " when launching PowerShell)" -ForegroundColor White
+        Write-Host "  2. The fix will run automatically when you select Run below." -ForegroundColor White
+        Blank
+        Sep
+        Write-Host "  WHAT DOES THIS DO?" -ForegroundColor DarkGray
+        Write-Host "  Downloads CloudRedirectCLI.exe temporarily and runs it with" -ForegroundColor White
+        Write-Host "  the /stfixer flag, which patches Steam's server routing to" -ForegroundColor White
+        Write-Host "  restore internet connectivity for downloads and updates." -ForegroundColor White
+        Blank
+        Sep
+        Blank
+        Write-Host "  1   " -ForegroundColor Cyan -NoNewline; Write-Host "Run the fix now"
+        Write-Host "  2   " -ForegroundColor Cyan -NoNewline; Write-Host "View the PowerShell command manually"
+        Blank
+        Write-Host "  Q   " -ForegroundColor DarkGray -NoNewline; Write-Host "Back to Main Menu"
+        Blank
+    }
+
+    while ($true) {
+        Write-NoInternetMenu
+        $noIntChoice = Read-Host "Select an option"
+
+        switch ($noIntChoice.Trim().ToUpper()) {
+            "1" {
+                Clear-Host
+                Sep
+                Write-Host "  Running No Internet Connection Fix..." -ForegroundColor Cyan
+                Sep
+                Blank
+
+                $IsAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
+                    [Security.Principal.WindowsBuiltInRole]::Administrator
+                )
+                if (-not $IsAdmin) {
+                    Log "WARN" "Not running as Administrator — the fix may not work correctly."
+                    Log "WARN" "Re-launch this script with Ctrl+Shift+Enter for best results."
+                    Blank
+                    $adminChoice = Read-Host "Continue anyway? (Y/N)"
+                    if ($adminChoice.Trim() -notin @("Y","y")) {
+                        Log "INFO" "Cancelled. Returning to menu."
+                        Start-Sleep -Seconds 1
+                        break
+                    }
+                }
+
+                Log "INFO" "Downloading CloudRedirectCLI.exe..."
+                $cliDest = Join-Path $env:TEMP "CloudRedirectCLI.exe"
+                try {
+                    Invoke-WebRequest -Uri "https://github.com/Selectively11/CloudRedirect/releases/latest/download/CloudRedirectCLI.exe" -OutFile $cliDest -ErrorAction Stop
+                    Log "OK" "Downloaded to: $cliDest"
+                } catch {
+                    Log "ERR" "Download failed: $($_.Exception.Message)"
+                    Blank
+                    Read-Host "Press Enter to go back"
+                    break
+                }
+
+                Log "INFO" "Running CloudRedirectCLI /stfixer..."
+                try {
+                    $proc = Start-Process -FilePath $cliDest -ArgumentList "/stfixer" -Wait -PassThru -ErrorAction Stop
+                    if ($proc.ExitCode -eq 0) {
+                        Log "OK" "CloudRedirectCLI completed successfully."
+                    } else {
+                        Log "WARN" "CloudRedirectCLI exited with code: $($proc.ExitCode)"
+                    }
+                } catch {
+                    Log "ERR" "Failed to run CloudRedirectCLI: $($_.Exception.Message)"
+                }
+
+                Blank
+                Log "INFO" "Cleaning up temp file..."
+                Remove-Item -Path $cliDest -Force -ErrorAction SilentlyContinue
+                Log "OK" "Done."
+                Blank
+                Read-Host "Press Enter to go back to the menu"
+                break
+            }
+            "2" {
+                Clear-Host
+                Sep
+                Write-Host "  Manual PowerShell Command" -ForegroundColor Cyan
+                Sep
+                Blank
+                Write-Host "  To run this fix manually, open PowerShell as Administrator" -ForegroundColor White
+                Write-Host "  (Ctrl + Shift + Enter) and paste the following command:" -ForegroundColor White
+                Blank
+                Write-Host "  ----------------------------------------------------------------" -ForegroundColor DarkGray
+                Write-Host "  Invoke-WebRequest -Uri `"https://github.com/Selectively11/CloudRedirect/releases/latest/download/CloudRedirectCLI.exe`" -OutFile `"`$env:TEMP\CloudRedirectCLI.exe`"; & `"`$env:TEMP\CloudRedirectCLI.exe`" /stfixer" -ForegroundColor Yellow
+                Write-Host "  ----------------------------------------------------------------" -ForegroundColor DarkGray
+                Blank
+                Read-Host "Press Enter to go back to the menu"
+                break
+            }
+            "Q" {
+                $Host.UI.RawUI.WindowTitle = "Luatools Tool Suite | .gg/luatools"
+
+                while ($true) {
+                    Write-MainMenu
+                    $sel = Read-Host "Select an option"
+                    switch ($sel.Trim().ToUpper()) {
+                        "1" { $Branch = 1; break }
+                        "2" { $Branch = 2; break }
+                        "3" { $Branch = 3; break }
+                        "4" { $Branch = 4; break }
+                        "5" { $Branch = 5; break }
+                        "6" {
+                            $Branch = 6
+                            $defChoice = Read-Host "Skip Windows Defender exclusions? (y/N)"
+                            if ($defChoice.Trim() -ieq "y") { $SkipDefender = $true }
+                            break
+                        }
+                        "7" { $Branch = 7; break }
+                        "8" { $Branch = 8; break }
+                        "9" { $Branch = 9; break }
+                        "10" { $Branch = 10; break }
+                        "Q" { exit 0 }
+                        default { continue }
+                    }
+                    if ($Branch -ne 0) { break }
+                }
+                Blank
+                continue MainLoop
+            }
+        }
+    }
+}
+
+
+#### Branch 9: Download / Launch CloudRedirect GUI (App by SelectivelyGood | Script by Potatoes9411) ####
+if ($Branch -eq 9) {
+    $Host.UI.RawUI.WindowTitle = "CloudRedirect GUI | .gg/luatools"
+
+    $cloudRedirectDir  = "C:\Program Files (x86)\Steam\CloudRedirect"
+    $cloudRedirectExe  = Join-Path $cloudRedirectDir "CloudRedirect.exe"
+    $cloudRedirectUrl  = "https://github.com/Selectively11/CloudRedirect/releases/latest/download/CloudRedirect.exe"
+
+    function Write-CloudRedirectHeader {
+        Clear-Host
+        Sep
+        Write-Host "  CloudRedirect (GUI)  |  .gg/luatools" -ForegroundColor Cyan
+        Sep
+        Blank
+        Write-Host "  Downloads and launches CloudRedirect, a GUI tool for fixing" -ForegroundColor White
+        Write-Host "  Steam connectivity and server routing issues." -ForegroundColor White
+        Blank
+        Write-Host "  CloudRedirect" -NoNewline -ForegroundColor Cyan
+        Write-Host " by SelectivelyGood  |  Script by Potatoes9411" -ForegroundColor DarkGray
+        Blank
+    }
+
+    function Get-CloudRedirectInstalled {
+        return (Test-Path $cloudRedirectExe)
+    }
+
+    function Write-CloudRedirectMenu {
+        Write-CloudRedirectHeader
+        $installed = Get-CloudRedirectInstalled
+        $statusText = if ($installed) { "[installed]" } else { "[not installed]" }
+        $statusColor = if ($installed) { "Green" } else { "DarkGray" }
+
+        Write-Host "  Install path: " -NoNewline -ForegroundColor DarkGray
+        Write-Host $cloudRedirectDir -ForegroundColor White
+        Write-Host "  Status:       " -NoNewline -ForegroundColor DarkGray
+        Write-Host $statusText -ForegroundColor $statusColor
+        Blank
+        Sep
+        Blank
+
+        Write-Host "  1   " -ForegroundColor Cyan -NoNewline
+        Write-Host "Download & Launch CloudRedirect" -NoNewline
+        Write-Host "  (always downloads latest)" -ForegroundColor DarkGray
+
+        Write-Host "  2   " -ForegroundColor Cyan -NoNewline
+        if ($installed) {
+            Write-Host "Launch CloudRedirect (already installed)"
+        } else {
+            Write-Host "Launch CloudRedirect " -NoNewline
+            Write-Host "(not installed — download first)" -ForegroundColor DarkGray
+        }
+
+        Blank
+        Write-Host "  Q   " -ForegroundColor DarkGray -NoNewline; Write-Host "Back to Main Menu"
+        Blank
+    }
+
+    while ($true) {
+        Write-CloudRedirectMenu
+        $crChoice = Read-Host "Select an option"
+
+        switch ($crChoice.Trim().ToUpper()) {
+            "1" {
+                Clear-Host
+                Sep
+                Write-Host "  Downloading CloudRedirect..." -ForegroundColor Cyan
+                Sep
+                Blank
+
+                Log "INFO" "Creating install directory..."
+                try {
+                    New-Item -Path $cloudRedirectDir -ItemType Directory -Force -ErrorAction Stop | Out-Null
+                    Log "OK" "Directory ready: $cloudRedirectDir"
+                } catch {
+                    Log "ERR" "Could not create directory: $($_.Exception.Message)"
+                    Blank
+                    Read-Host "Press Enter to go back"
+                    break
+                }
+
+                Log "INFO" "Downloading CloudRedirect.exe from GitHub..."
+                try {
+                    Invoke-WebRequest -Uri $cloudRedirectUrl -OutFile $cloudRedirectExe -ErrorAction Stop
+                    Log "OK" "Saved to: $cloudRedirectExe"
+                } catch {
+                    Log "ERR" "Download failed: $($_.Exception.Message)"
+                    Blank
+                    Read-Host "Press Enter to go back"
+                    break
+                }
+
+                Blank
+                Log "INFO" "Launching CloudRedirect..."
+                try {
+                    Start-Process -FilePath $cloudRedirectExe -ErrorAction Stop
+                    Log "OK" "CloudRedirect launched."
+                } catch {
+                    Log "ERR" "Failed to launch CloudRedirect: $($_.Exception.Message)"
+                }
+
+                Blank
+                Read-Host "Press Enter to go back to the menu"
+                break
+            }
+            "2" {
+                if (-not (Get-CloudRedirectInstalled)) {
+                    Clear-Host
+                    Sep
+                    Log "WARN" "CloudRedirect is not installed yet."
+                    Log "INFO" "Please use option 1 to download it first."
+                    Sep
+                    Blank
+                    Read-Host "Press Enter to go back"
+                    break
+                }
+
+                Clear-Host
+                Sep
+                Write-Host "  Launching CloudRedirect..." -ForegroundColor Cyan
+                Sep
+                Blank
+
+                Log "INFO" "Starting CloudRedirect from: $cloudRedirectExe"
+                try {
+                    Start-Process -FilePath $cloudRedirectExe -ErrorAction Stop
+                    Log "OK" "CloudRedirect launched."
+                } catch {
+                    Log "ERR" "Failed to launch CloudRedirect: $($_.Exception.Message)"
+                }
+
+                Blank
+                Read-Host "Press Enter to go back to the menu"
+                break
+            }
+            "Q" {
+                $Host.UI.RawUI.WindowTitle = "Luatools Tool Suite | .gg/luatools"
+
+                while ($true) {
+                    Write-MainMenu
+                    $sel = Read-Host "Select an option"
+                    switch ($sel.Trim().ToUpper()) {
+                        "1" { $Branch = 1; break }
+                        "2" { $Branch = 2; break }
+                        "3" { $Branch = 3; break }
+                        "4" { $Branch = 4; break }
+                        "5" { $Branch = 5; break }
+                        "6" {
+                            $Branch = 6
+                            $defChoice = Read-Host "Skip Windows Defender exclusions? (y/N)"
+                            if ($defChoice.Trim() -ieq "y") { $SkipDefender = $true }
+                            break
+                        }
+                        "7" { $Branch = 7; break }
+                        "8" { $Branch = 8; break }
+                        "9" { $Branch = 9; break }
+                        "10" { $Branch = 10; break }
+                        "Q" { exit 0 }
+                        default { continue }
+                    }
+                    if ($Branch -ne 0) { break }
+                }
+                Blank
+                continue MainLoop
+            }
+        }
+    }
+}
+
+
+#### Branch 10: Millennium & SteamTools Reinstaller (by clem.la & melly) ####
+if ($Branch -eq 10) {
+    $Host.UI.RawUI.WindowTitle = "Millennium & ST Reinstaller | .gg/luatools"
+
+    # ---- Branch 10: Inner functions ----
+
+    function Write-ReinstallHeader {
+        Clear-Host
+        Sep
+        Write-Host "  Millennium & SteamTools Reinstaller  |  .gg/luatools" -ForegroundColor Cyan
+        Sep
+        Blank
+        Write-Host "  Performs a clean reinstall of Millennium and SteamTools." -ForegroundColor White
+        Write-Host "  Also fixes hardlink errors caused by corrupt or leftover files." -ForegroundColor White
+        Blank
+        Write-Host "  by clem.la & melly" -ForegroundColor DarkGray
+        Blank
+    }
+
+    function Write-ReinstallMenu {
+        Write-ReinstallHeader
+        Sep
+        Blank
+        Write-Host "  WHAT THIS DOES:" -ForegroundColor DarkGray
+        Write-Host "  - Stops Steam completely" -ForegroundColor White
+        Write-Host "  - Removes leftover/conflicting DLLs and config files" -ForegroundColor White
+        Write-Host "    (steam.cfg, beta flag, version.dll, old DLLs, Tencent cache)" -ForegroundColor DarkGray
+        Write-Host "  - Clears SteamTools registry unlock flags" -ForegroundColor White
+        Write-Host "  - Adds Defender exclusions for the new DLLs" -ForegroundColor White
+        Write-Host "  - Downloads fresh xinput1_4.dll + dwmapi.dll" -ForegroundColor White
+        Write-Host "  - Reinstalls Millennium silently (no restart)" -ForegroundColor White
+        Write-Host "  - Sets iscdkey=false and relaunches Steam" -ForegroundColor White
+        Blank
+        Sep
+        Blank
+        Write-Host "  1   " -ForegroundColor Cyan -NoNewline; Write-Host "Run clean reinstall"
+        Blank
+        Write-Host "  Q   " -ForegroundColor DarkGray -NoNewline; Write-Host "Back to Main Menu"
+        Blank
+    }
+
+    # Locate Steam path — tries all three registry locations like the rest of the script
+    $b10SteamPath = (Get-ItemProperty "HKLM:\SOFTWARE\WOW6432Node\Valve\Steam" -ErrorAction SilentlyContinue).InstallPath
+    if (-not $b10SteamPath) { $b10SteamPath = (Get-ItemProperty "HKLM:\SOFTWARE\Valve\Steam" -ErrorAction SilentlyContinue).InstallPath }
+    if (-not $b10SteamPath) { $b10SteamPath = (Get-ItemProperty "HKCU:\Software\Valve\Steam" -ErrorAction SilentlyContinue).SteamPath }
+
+    if (-not $b10SteamPath -or -not (Test-Path $b10SteamPath)) {
+        Write-ReinstallHeader
+        Log "ERR" "Steam installation not found. Is Steam installed?"
+        Blank
+        Read-Host "Press Enter to return to the menu"
+        $Branch = 0
+        $Host.UI.RawUI.WindowTitle = "Luatools Tool Suite | .gg/luatools"
+        while ($true) {
+            Write-MainMenu
+            $sel = Read-Host "Select an option"
+            switch ($sel.Trim().ToUpper()) {
+                "1"  { $Branch = 1; break }
+                "2"  { $Branch = 2; break }
+                "3"  { $Branch = 3; break }
+                "4"  { $Branch = 4; break }
+                "5"  { $Branch = 5; break }
+                "6"  {
+                    $Branch = 6
+                    $defChoice = Read-Host "Skip Windows Defender exclusions? (y/N)"
+                    if ($defChoice.Trim() -ieq "y") { $SkipDefender = $true }
+                    break
+                }
+                "7"  { $Branch = 7; break }
+                "8"  { $Branch = 8; break }
+                "9"  { $Branch = 9; break }
+                "10" { $Branch = 10; break }
+                "Q"  { exit 0 }
+                default { continue }
+            }
+            if ($Branch -ne 0) { break }
+        }
+        Blank
+        continue MainLoop
+    }
+
+    $b10SteamToolsRegPath = 'HKCU:\Software\Valve\Steamtools'
+    $b10LocalPath         = Join-Path $env:LOCALAPPDATA "steam"
+
+    while ($true) {
+        Write-ReinstallMenu
+        $b10Choice = Read-Host "Select an option"
+
+        switch ($b10Choice.Trim().ToUpper()) {
+            "1" {
+                Clear-Host
+                Sep
+                Write-Host "  Running Millennium & SteamTools Reinstaller..." -ForegroundColor Cyan
+                Sep
+                Blank
+
+                # --- Stop Steam ---
+                Log "WARN" "Stopping Steam..."
+                $b10ForceStop = {
+                    param($procName)
+                    Get-Process $procName -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+                    Start-Sleep -Seconds 2
+                    if (Get-Process $procName -ErrorAction SilentlyContinue) {
+                        Start-Process cmd -ArgumentList "/c taskkill /f /im $procName.exe" -WindowStyle Hidden -ErrorAction SilentlyContinue
+                    }
+                }
+                & $b10ForceStop "steam"
+                & $b10ForceStop "steamwebhelper"
+                & $b10ForceStop "steamerrorreporter"
+                Start-Sleep -Seconds 1
+                Log "OK" "Steam stopped."
+                Blank
+
+                # --- Ensure local appdata folder exists ---
+                if (-not (Test-Path $b10LocalPath)) {
+                    New-Item $b10LocalPath -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
+                }
+
+                # --- Remove leftover / conflicting files ---
+                Log "INFO" "Removing conflicting files..."
+
+                $b10FilesToRemove = @(
+                    (Join-Path $b10SteamPath "steam.cfg"),
+                    (Join-Path $b10SteamPath "package\beta"),
+                    (Join-Path $env:LOCALAPPDATA "Microsoft\Tencent"),
+                    (Join-Path $b10SteamPath "version.dll"),
+                    (Join-Path $b10SteamPath "user32.dll"),
+                    (Join-Path $b10SteamPath "xinput1_4.dll"),
+                    (Join-Path $b10SteamPath "dwmapi.dll")
+                )
+
+                foreach ($f in $b10FilesToRemove) {
+                    if (Test-Path $f) {
+                        try {
+                            Remove-Item -Path $f -Force -Recurse -ErrorAction Stop
+                            Log "OK" "Removed: $(Split-Path $f -Leaf)"
+                        } catch {
+                            Log "WARN" "Could not remove: $(Split-Path $f -Leaf) — $($_.Exception.Message)"
+                        }
+                    }
+                }
+                Log "OK" "Cleanup done."
+                Blank
+
+                # --- Clear SteamTools registry unlock flags ---
+                Log "INFO" "Clearing SteamTools registry flags..."
+                if (-not (Test-Path $b10SteamToolsRegPath)) {
+                    New-Item -Path $b10SteamToolsRegPath -Force | Out-Null
+                }
+                Remove-ItemProperty -Path $b10SteamToolsRegPath -Name "ActivateUnlockMode"  -ErrorAction SilentlyContinue
+                Remove-ItemProperty -Path $b10SteamToolsRegPath -Name "AlwaysStayUnlocked"  -ErrorAction SilentlyContinue
+                Remove-ItemProperty -Path $b10SteamToolsRegPath -Name "notUnlockDepot"       -ErrorAction SilentlyContinue
+                Set-ItemProperty    -Path $b10SteamToolsRegPath -Name "iscdkey" -Value "false" -Type String
+                Log "OK" "Registry flags cleared."
+                Blank
+
+                # --- Add Defender exclusions ---
+                $b10XinputPath = Join-Path $b10SteamPath "xinput1_4.dll"
+                $b10DwmapiPath = Join-Path $b10SteamPath "dwmapi.dll"
+                Log "INFO" "Adding Defender exclusions..."
+                try { Add-MpPreference -ExclusionPath $b10XinputPath -ErrorAction SilentlyContinue } catch {}
+                try { Add-MpPreference -ExclusionPath $b10DwmapiPath -ErrorAction SilentlyContinue } catch {}
+                Log "OK" "Exclusions added."
+                Blank
+
+                # --- Download fresh SteamTools DLLs ---
+                Log "INFO" "Downloading SteamTools DLLs..."
+                $b10DllMap = @{
+                    $b10XinputPath = "http://update.steamcdn.com/update"
+                    $b10DwmapiPath = "http://update.steamcdn.com/dwmapi"
+                }
+                foreach ($dest in $b10DllMap.Keys) {
+                    $uri     = $b10DllMap[$dest]
+                    $dllName = Split-Path $dest -Leaf
+                    Log "LOG" "Downloading $dllName..."
+                    try {
+                        Invoke-RestMethod -Uri $uri -OutFile $dest -ErrorAction Stop
+                        Log "OK" "$dllName downloaded."
+                    } catch {
+                        # If file already exists (old copy), back it up and retry
+                        if (Test-Path $dest) {
+                            Move-Item -Path $dest -Destination "$dest.old" -Force -ErrorAction SilentlyContinue
+                            try {
+                                Invoke-RestMethod -Uri $uri -OutFile $dest -ErrorAction SilentlyContinue
+                                Log "OK" "$dllName downloaded (after backup)."
+                            } catch {
+                                Log "WARN" "Could not download $dllName — $($_.Exception.Message)"
+                            }
+                        } else {
+                            Log "WARN" "Could not download $dllName — $($_.Exception.Message)"
+                        }
+                    }
+                }
+                Log "OK" "DLLs done."
+                Blank
+
+                # --- Reinstall Millennium (silent, no Steam restart) ---
+                Log "INFO" "Reinstalling Millennium (silent)..."
+                try {
+                    $b10MillenniumInstaller = [ScriptBlock]::Create((Invoke-RestMethod "https://clemdotla.github.io/millennium-installer-ps1/millennium.ps1"))
+                    & $b10MillenniumInstaller -NoLog -DontStart -SteamPath $b10SteamPath
+                    Log "OK" "Millennium reinstalled."
+                } catch {
+                    Log "WARN" "Millennium reinstall failed: $($_.Exception.Message)"
+                    Log "WARN" "You can reinstall manually at https://steambrew.app/"
+                }
+                Blank
+
+                # --- Launch Steam ---
+                Log "INFO" "Launching Steam..."
+                $b10SteamExe = Join-Path $b10SteamPath "steam.exe"
+                if (Test-Path $b10SteamExe) {
+                    Start-Process $b10SteamExe
+                    Start-Process "steam://"
+                    Log "OK" "Steam launched. Log in to complete activation."
+                } else {
+                    Log "WARN" "steam.exe not found at expected path — launch Steam manually."
+                }
+
+                Blank
+                Sep
+                Write-Host "  Done! Reinstall complete." -ForegroundColor Green
+                Sep
+                Blank
+                Read-Host "Press Enter to go back to the menu"
+                break
+            }
+            "Q" {
+                $Branch = 0
+                $Host.UI.RawUI.WindowTitle = "Luatools Tool Suite | .gg/luatools"
+                while ($true) {
+                    Write-MainMenu
+                    $sel = Read-Host "Select an option"
+                    switch ($sel.Trim().ToUpper()) {
+                        "1"  { $Branch = 1; break }
+                        "2"  { $Branch = 2; break }
+                        "3"  { $Branch = 3; break }
+                        "4"  { $Branch = 4; break }
+                        "5"  { $Branch = 5; break }
+                        "6"  {
+                            $Branch = 6
+                            $defChoice = Read-Host "Skip Windows Defender exclusions? (y/N)"
+                            if ($defChoice.Trim() -ieq "y") { $SkipDefender = $true }
+                            break
+                        }
+                        "7"  { $Branch = 7; break }
+                        "8"  { $Branch = 8; break }
+                        "9"  { $Branch = 9; break }
+                        "10" { $Branch = 10; break }
+                        "Q"  { exit 0 }
+                        default { continue }
+                    }
+                    if ($Branch -ne 0) { break }
+                }
+                Blank
+                continue MainLoop
+            }
+        }
+    }
 }
 
 
@@ -1449,7 +2085,8 @@ foreach ($file in @("millennium.dll", "python311.dll")) {
         Write-Host
 
         Log "INFO" "Installing Millenium"
-        Invoke-Expression "& { $(Invoke-RestMethod 'https://clemdotla.github.io/millennium-installer-ps1/millennium.ps1') } -NoLog -DontStart -SteamPath '$steam'"
+        $millenniumInstaller = [ScriptBlock]::Create((Invoke-RestMethod "https://clemdotla.github.io/millennium-installer-ps1/millennium.ps1"))
+        & $millenniumInstaller -NoLog -DontStart -SteamPath $steam
         Log "OK" "Millenium done installing"
         $milleniumInstalling = $true
         break
@@ -1582,11 +2219,12 @@ $exe = Join-Path $steam "steam.exe"
 Start-Process $exe -ArgumentList "-clearbeta"
 
 Log "INFO" "Starting Steam"
-Log "WARN" "Hey so there's a bug where steam may not start"
+Log "WARN" "Hey so there is a bug where steam may not start"
 Log "WARN" "Hopefully this script fixes it"
 Log "WARN" "But i had to turn updates of millennium off."
 Log "WARN" "In future, they will come back but in the meantime:"
 Log "OK"   "Manually check for updates of millennium if you want up to date."
 Log "AUX"  "Millennium is working now tho (latest version)."
+exit 0
 
 } # end :MainLoop
