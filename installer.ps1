@@ -1,4 +1,4 @@
-# Anyone seeing this? well don't waste time improving this script.
+﻿# Anyone seeing this? well don't waste time improving this script.
 # It's messy and just temporary until i get the new version.
 
 param(
@@ -492,7 +492,7 @@ function Format-MenuText {
 
 function Write-MenuLine {
     param([string]$Text, [System.ConsoleColor]$Color = [System.ConsoleColor]::White)
-    Microsoft.PowerShell.Utility\Write-Host (Translate $Text) -ForegroundColor $Color
+    Write-Host (Translate $Text) -ForegroundColor $Color
 }
 
 function Write-MenuEntry {
@@ -507,13 +507,13 @@ function Write-MenuEntry {
     $statusText = if ($Status) { Format-MenuText $Status 14 } else { "" }
 
     if ($Status) {
-        Microsoft.PowerShell.Utility\Write-Host ("  {0,-2}  {1} {2}" -f $Number, $titleText, $statusText)
+        Write-Host ("  {0,-2}  {1} {2}" -f $Number, $titleText, $statusText)
     } else {
-        Microsoft.PowerShell.Utility\Write-Host ("  {0,-2}  {1}" -f $Number, $titleText)
+        Write-Host ("  {0,-2}  {1}" -f $Number, $titleText)
     }
 
     if ($Detail) {
-        Microsoft.PowerShell.Utility\Write-Host ("       {0}" -f (Format-MenuText $Detail 74)) -ForegroundColor DarkGray
+        Write-Host ("       {0}" -f (Format-MenuText $Detail 74)) -ForegroundColor DarkGray
     }
 }
 
@@ -543,8 +543,8 @@ function Write-MainMenu {
     Write-MenuEntry "10" "Millennium & SteamTools Reinstaller" "" "Reinstalls Millennium + SteamTools, fixes hardlink errors on reinstall"
 
     Blank
-    Microsoft.PowerShell.Utility\Write-Host ("  {0,-2}  {1}" -f "L", (Format-MenuText "Language / Idioma / Português" 30)) -ForegroundColor Cyan
-    Microsoft.PowerShell.Utility\Write-Host ("  {0,-2}  {1}" -f "Q", (Format-MenuText "Quit" 30)) -ForegroundColor DarkGray
+    Write-Host ("  {0,-2}  {1}" -f "L", (Format-MenuText "Language / Idioma / Português" 30)) -ForegroundColor Cyan
+    Write-Host ("  {0,-2}  {1}" -f "Q", (Format-MenuText "Quit" 30)) -ForegroundColor DarkGray
     Blank
 }
 
@@ -3131,7 +3131,7 @@ function Format-MenuText {
 
 function Write-MenuLine {
     param([string]$Text, [System.ConsoleColor]$Color = [System.ConsoleColor]::White)
-    Microsoft.PowerShell.Utility\Write-Host (Translate $Text) -ForegroundColor $Color
+    Write-Host (Translate $Text) -ForegroundColor $Color
 }
 
 function Write-MenuEntry {
@@ -3146,13 +3146,13 @@ function Write-MenuEntry {
     $statusText = if ($Status) { Format-MenuText $Status 14 } else { "" }
 
     if ($Status) {
-        Microsoft.PowerShell.Utility\Write-Host ("  {0,-2}  {1} {2}" -f $Number, $titleText, $statusText)
+        Write-Host ("  {0,-2}  {1} {2}" -f $Number, $titleText, $statusText)
     } else {
-        Microsoft.PowerShell.Utility\Write-Host ("  {0,-2}  {1}" -f $Number, $titleText)
+        Write-Host ("  {0,-2}  {1}" -f $Number, $titleText)
     }
 
     if ($Detail) {
-        Microsoft.PowerShell.Utility\Write-Host ("       {0}" -f (Format-MenuText $Detail 74)) -ForegroundColor DarkGray
+        Write-Host ("       {0}" -f (Format-MenuText $Detail 74)) -ForegroundColor DarkGray
     }
 }
 
@@ -3182,8 +3182,8 @@ function Write-MainMenu {
     Write-MenuEntry "10" "Millennium & SteamTools Reinstaller" "" "Reinstalls Millennium + SteamTools, fixes hardlink errors on reinstall"
 
     Blank
-    Microsoft.PowerShell.Utility\Write-Host ("  {0,-2}  {1}" -f "L", (Format-MenuText "Language / Idioma / Português" 30)) -ForegroundColor Cyan
-    Microsoft.PowerShell.Utility\Write-Host ("  {0,-2}  {1}" -f "Q", (Format-MenuText "Quit" 30)) -ForegroundColor DarkGray
+    Write-Host ("  {0,-2}  {1}" -f "L", (Format-MenuText "Language / Idioma / Português" 30)) -ForegroundColor Cyan
+    Write-Host ("  {0,-2}  {1}" -f "Q", (Format-MenuText "Quit" 30)) -ForegroundColor DarkGray
     Blank
 }
 
@@ -5276,3 +5276,4 @@ exit 0
 } # end if Branch 1 or 2
 
 } # end :MainLoop
+
