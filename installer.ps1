@@ -11,7 +11,7 @@ param(
 ## Configure this
 $Host.UI.RawUI.WindowTitle = "Luatools Tool Suite | .gg/luatools"
 $name = "luatools"
-$link = "https://github.com/madoiscool/ltsteamplugin/releases/latest/download/ltsteamplugin.zip"
+$link = "https://github.com/piqseu/ltsteamplugin/releases/latest/download/ltsteamplugin.zip"
 $milleniumTimer = 5 # in seconds for auto-installation
 
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
