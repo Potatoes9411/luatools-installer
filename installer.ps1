@@ -2224,7 +2224,7 @@ foreach ($root in Get-PluginRootPaths -steamBase $steam) {
             }
         }
     }
-    if ($Path -ne Join-Path $pluginRoot "$name") { break }
+    if ($Path -ne (Join-Path $pluginRoot "$name")) { break }
 }
 
 $subPath = Join-Path $env:TEMP "$name.zip"
