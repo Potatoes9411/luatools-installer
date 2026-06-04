@@ -251,8 +251,7 @@ if (-not $Branch) {
     Blank
 }
 
-:MainLoop
-while ($true) {
+:MainLoop while ($true) {
 
 # Apply branch 2 name/link (works for both -Branch 2 and menu selection)
 if ($Branch -eq 2) {
