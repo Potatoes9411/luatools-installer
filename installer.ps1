@@ -58,10 +58,28 @@ Blank
 
 
 #### Main menu ####
+function Get-PluginRootPaths([string]$steamBase) {
+    $roots = @()
+    if ($steamBase) {
+        $roots += Join-Path $steamBase "plugins"
+        $roots += Join-Path $steamBase "millennium\plugins"
+    }
+    $roots += "C:\Program Files (x86)\Steam\plugins"
+    $roots += "C:\Program Files (x86)\Steam\millennium\plugins"
+    $roots += "C:\Program Files\Steam\plugins"
+    $roots += "C:\Program Files\Steam\millennium\plugins"
+    return $roots | Where-Object { Test-Path $_ }
+}
+
+function Get-PluginRootPath([string]$steamBase) {
+    $paths = Get-PluginRootPaths -steamBase $steamBase
+    return if ($paths.Count -gt 0) { $paths[0] } else { $null }
+}
+
 function Get-PluginStatus([string]$pluginName) {
     if (-not $steam) { return "[unknown]" }
     $roots = Get-PluginRootPaths -steamBase $steam
-    if (-not $roots -or $roots.Count -eq 0) { return "[not installed]" }
+    if ($roots.Count -eq 0) { return "[not installed]" }
     foreach ($dir in $roots) {
         foreach ($p in Get-ChildItem -Path $dir -Directory -ErrorAction SilentlyContinue) {
             $jp = Join-Path $p.FullName "plugin.json"
@@ -74,62 +92,11 @@ function Get-PluginStatus([string]$pluginName) {
     return "[not installed]"
 }
 
-function Get-SpacethemePaths {
-    param([string]$steamBase)
-    $paths = @()
-    if ($steamBase) {
-        $paths += Join-Path $steamBase "steamui\skins\Steam"
-        $paths += Join-Path $steamBase "steamui\skins\spacetheme"
-        $paths += Join-Path $steamBase "millennium\themes"
-        $paths += Join-Path $steamBase "millennium\themes\Steam"
-    }
-    $paths += "C:\Program Files (x86)\Steam\millennium\themes"
-    $paths += "C:\Program Files (x86)\Steam\millennium\themes\Steam"
-    $paths += "C:\Program Files\Steam\millennium\themes"
-    $paths += "C:\Program Files\Steam\millennium\themes\Steam"
-    $paths += "C:\Program Files (x86)\Steam\steamui\skins\Steam"
-    $paths += "C:\Program Files (x86)\Steam\steamui\skins\spacetheme"
-    return $paths | Where-Object { Test-Path $_ } | Select-Object -Unique
-}
-
 function Get-SpacethemeStatus {
     if (-not $steam) { return "[unknown]" }
-    $paths = Get-SpacethemePaths -steamBase $steam
-    if ($paths.Count -gt 0) { return "[found]" }
+    $steamPath = (Get-ItemProperty "HKCU:\Software\Valve\Steam" -ErrorAction SilentlyContinue).SteamPath
+    if ($steamPath -and (Test-Path "$steamPath\steamui\skins\Steam\src\css\regular.css")) { return "[found]" }
     return "[not found]"
-}
-
-function Get-PluginRootPaths {
-    param([string]$steamBase)
-    $roots = @()
-    if ($steamBase) {
-        $roots += Join-Path $steamBase "plugins"
-        $roots += Join-Path $steamBase "millennium\plugins"
-    }
-    $roots += "C:\Program Files (x86)\Steam\plugins"
-    $roots += "C:\Program Files (x86)\Steam\millennium\plugins"
-    $roots += "C:\Program Files\Steam\plugins"
-    $roots += "C:\Program Files\Steam\millennium\plugins"
-    return $roots | Where-Object { Test-Path $_ } | Select-Object -Unique
-}
-
-function Get-PluginRootPath {
-    param([string]$steamBase)
-    $roots = Get-PluginRootPaths -steamBase $steamBase
-    if ($roots.Count -gt 0) { return $roots[0] }
-    if ($steamBase) { return Join-Path $steamBase "plugins" }
-    return "C:\Program Files (x86)\Steam\plugins"
-}
-
-function Prompt-ExitOrReturnToMenu {
-    while ($true) {
-        $answer = Read-Host "Done. Exit script? (Y/N)"
-        switch ($answer.Trim().ToUpper()) {
-            "Y" { exit 0 }
-            "N" { return }
-            default { Write-Host "Please answer Y or N." -ForegroundColor Yellow }
-        }
-    }
 }
 
 function Write-MainMenu {
@@ -251,8 +218,7 @@ if (-not $Branch) {
     Blank
 }
 
-:MainLoop
-while ($true) {
+:MainLoop while ($true) {
 
 # Apply branch 2 name/link (works for both -Branch 2 and menu selection)
 if ($Branch -eq 2) {
@@ -269,56 +235,34 @@ if ($Branch -eq 3) {
     Log "AUX"  "Credit: waike (waike.dev)"
     Blank
 
-    function Get-SteamPath {
-        $entries = @(
-            @{ Path = "HKCU:\Software\Valve\Steam";             Key = "SteamPath"   },
-            @{ Path = "HKLM:\SOFTWARE\Valve\Steam";             Key = "InstallPath" },
-            @{ Path = "HKLM:\SOFTWARE\WOW6432Node\Valve\Steam"; Key = "InstallPath" }
-        )
-        foreach ($e in $entries) {
-            if (Test-Path $e.Path) {
-                $val = (Get-ItemProperty -Path $e.Path -Name $e.Key -ErrorAction SilentlyContinue).($e.Key)
-                if ($val -and (Test-Path $val)) { return $val }
-            }
-        }
-        return $null
-    }
-
-    function Find-SpacethemeRoots {
-        param([string]$steamBase)
-
-        $paths = @()
-        if ($steamBase) {
-            $paths += Join-Path $steamBase "steamui\skins\Steam"
-            $paths += Join-Path $steamBase "steamui\skins\spacetheme"
-            $paths += Join-Path $steamBase "millennium\themes"
-            $paths += Join-Path $steamBase "millennium\themes\Steam"
-        }
-
-        $paths += "C:\Program Files (x86)\Steam\millennium\themes"
-        $paths += "C:\Program Files (x86)\Steam\millennium\themes\Steam"
-        $paths += "C:\Program Files\Steam\millennium\themes"
-        $paths += "C:\Program Files\Steam\millennium\themes\Steam"
-        $paths += "C:\Program Files (x86)\Steam\steamui\skins\Steam"
-        $paths += "C:\Program Files (x86)\Steam\steamui\skins\spacetheme"
-
-        return $paths | Where-Object { Test-Path $_ } | Select-Object -Unique
-    }
-
-    $steamPath = Get-SteamPath
-    if (-not $steamPath) {
+    $steamPath = (Get-ItemProperty "HKCU:\Software\Valve\Steam" -ErrorAction SilentlyContinue).SteamPath
+    if (-not $steamPath -or -not (Test-Path $steamPath)) {
         Log "ERR" "Steam not found."
-        Prompt-ExitOrReturnToMenu
-        $Branch = 0
-        continue MainLoop
+        Read-Host "Press Enter to exit"
+        exit 1
     }
 
-    $themeRoots = Find-SpacethemeRoots -steamBase $steamPath
-    if (-not $themeRoots -or $themeRoots.Count -eq 0) {
-        Log "ERR" "Spacetheme was not found. Is it installed in Steam or Millennium themes?"
-        Prompt-ExitOrReturnToMenu
-        $Branch = 0
-        continue MainLoop
+    # Find all possible Spacetheme roots
+    $themeRoots = @()
+    $possibleRoots = @(
+        "$steamPath\steamui\skins\Steam",
+        "$steamPath\steamui\skins\spacetheme",
+        "$steamPath\millennium\themes",
+        "$steamPath\millennium\themes\Steam",
+        "C:\Program Files (x86)\Steam\millennium\themes",
+        "C:\Program Files (x86)\Steam\millennium\themes\Steam",
+        "C:\Program Files\Steam\millennium\themes",
+        "C:\Program Files\Steam\millennium\themes\Steam"
+    )
+    
+    foreach ($root in $possibleRoots) {
+        if (Test-Path $root) { $themeRoots += $root }
+    }
+
+    if ($themeRoots.Count -eq 0) {
+        Log "ERR" "Spacetheme was not found in any standard location."
+        Read-Host "Press Enter to exit"
+        exit 1
     }
 
     Log "WARN" "Closing all Steam processes..."
@@ -332,31 +276,29 @@ if ($Branch -eq 3) {
     Start-Sleep -Seconds 1
 
     $pattern = '(?is)/\*\s*\r?\n?\s*&\s*Ban piracy plugins.*?color:\s*#fff\s*!important;\s*\}'
-    $patchedFiles = @()
+    $patchedCount = 0
 
     foreach ($root in $themeRoots) {
-        Log "INFO" "Scanning theme path: $root"
         foreach ($cssFile in Get-ChildItem -Path $root -Recurse -Filter "*.css" -ErrorAction SilentlyContinue) {
             $content = Get-Content $cssFile.FullName -Raw
             if ($content -match $pattern) {
                 $content = $content -replace $pattern, '/* Patched piracy warning block */'
                 Set-Content -Path $cssFile.FullName -Value $content -NoNewline -Encoding UTF8
-                $patchedFiles += $cssFile.FullName
-                Log "OK" "Patched $($cssFile.FullName)"
+                $patchedCount++
+                Log "OK" "Patched $($cssFile.Name)"
             }
         }
     }
 
-    if ($patchedFiles.Count -gt 0) {
-        Log "OK" "Patched $($patchedFiles.Count) Spacetheme CSS file(s)"
+    if ($patchedCount -gt 0) {
+        Log "OK" "Patched $patchedCount CSS file(s)"
     } else {
-        Log "INFO" "Nothing to patch in matched Spacetheme CSS files — block may already be removed."
+        Log "INFO" "Nothing to patch — block may already be removed."
     }
 
     Blank
-    Prompt-ExitOrReturnToMenu
-    $Branch = 0
-    continue MainLoop
+    Read-Host "Press Enter to exit"
+    exit
 }
 
 
@@ -390,9 +332,8 @@ if ($Branch -eq 4) {
     }
 
     Blank
-    Prompt-ExitOrReturnToMenu
-    $Branch = 0
-    continue MainLoop
+    Read-Host "Press Enter to exit"
+    exit
 }
 
 
@@ -418,20 +359,18 @@ if ($Branch -eq 5) {
     $steam = Get-SteamPath
     if (-not $steam) {
         Log "ERR" "Steam not found. Is Steam installed?"
-        Prompt-ExitOrReturnToMenu
-        $Branch = 0
-        continue MainLoop
+        Blank; Read-Host "Press Enter to exit"
+        exit 1
     }
 
     function Test-PluginInstalled {
-        $pluginRoots = Get-PluginRootPaths -steamBase $steam
-        foreach ($dir in $pluginRoots) {
-            foreach ($p in Get-ChildItem -Path $dir -Directory -ErrorAction SilentlyContinue) {
-                $jp = Join-Path $p.FullName "plugin.json"
-                if (Test-Path $jp) {
-                    $j = try { Get-Content $jp -Raw | ConvertFrom-Json } catch { $null }
-                    if ($j -and $j.name -eq $name) { return $true }
-                }
+        $dir = Join-Path $steam "plugins"
+        if (-not (Test-Path $dir)) { return $false }
+        foreach ($p in Get-ChildItem -Path $dir -Directory -ErrorAction SilentlyContinue) {
+            $jp = Join-Path $p.FullName "plugin.json"
+            if (Test-Path $jp) {
+                $j = try { Get-Content $jp -Raw | ConvertFrom-Json } catch { $null }
+                if ($j -and $j.name -eq $name) { return $true }
             }
         }
         return $false
@@ -467,19 +406,16 @@ if ($Branch -eq 5) {
     function Uninstall-Plugin {
         Blank; Sep; Log "INFO" "Uninstalling plugin: $name"; Sep; Blank
 
-        $pluginRoots = Get-PluginRootPaths -steamBase $steam
-        if (-not $pluginRoots -or $pluginRoots.Count -eq 0) { Log "WARN" "Plugins directory not found."; return }
+        $dir = Join-Path $steam "plugins"
+        if (-not (Test-Path $dir)) { Log "WARN" "Plugins directory not found."; return }
 
         $pluginPath = $null
-        foreach ($dir in $pluginRoots) {
-            foreach ($p in Get-ChildItem -Path $dir -Directory -ErrorAction SilentlyContinue) {
-                $jp = Join-Path $p.FullName "plugin.json"
-                if (Test-Path $jp) {
-                    $j = try { Get-Content $jp -Raw | ConvertFrom-Json } catch { $null }
-                    if ($j -and $j.name -eq $name) { $pluginPath = $p.FullName; break }
-                }
+        foreach ($p in Get-ChildItem -Path $dir -Directory -ErrorAction SilentlyContinue) {
+            $jp = Join-Path $p.FullName "plugin.json"
+            if (Test-Path $jp) {
+                $j = try { Get-Content $jp -Raw | ConvertFrom-Json } catch { $null }
+                if ($j -and $j.name -eq $name) { $pluginPath = $p.FullName; break }
             }
-            if ($pluginPath) { break }
         }
 
         if ($pluginPath) {
@@ -789,9 +725,8 @@ if ($Branch -eq 6) {
     Blank
     Log "OK" "Done."
     Blank
-    Prompt-ExitOrReturnToMenu
-    $Branch = 0
-    continue MainLoop
+    Read-Host "Press Enter to exit"
+    exit
 }
 
 
@@ -2204,16 +2139,16 @@ if (-not $milleniumInstalling) { Log "INFO" "Millenium already installed" }
 #### Plugin install ####
 $pluginRoot = Get-PluginRootPath -steamBase $steam
 if (-not $pluginRoot) {
-    Log "ERR" "Could not determine plugin installation path."
-    exit
+    $pluginRoot = Join-Path $steam "plugins"
 }
 if (!(Test-Path $pluginRoot)) {
-    New-Item -Path $pluginRoot -ItemType Directory -Force *> $null
+    New-Item -Path $pluginRoot -ItemType Directory *> $null
 }
 
 $Path = Join-Path $pluginRoot "$name"
 
-foreach ($root in Get-PluginRootPaths -steamBase $steam) {
+# Check all plugin roots for existing installation
+foreach ($root in (Get-PluginRootPaths -steamBase $steam)) {
     foreach ($plugin in Get-ChildItem -Path $root -Directory -ErrorAction SilentlyContinue) {
         $testpath = Join-Path $plugin.FullName "plugin.json"
         if (Test-Path $testpath) {
@@ -2225,7 +2160,6 @@ foreach ($root in Get-PluginRootPaths -steamBase $steam) {
             }
         }
     }
-    if ($Path -ne (Join-Path $pluginRoot "$name")) { break }
 }
 
 $subPath = Join-Path $env:TEMP "$name.zip"
@@ -2274,12 +2208,6 @@ try {
 if (Test-Path $subPath) { Remove-Item $subPath -ErrorAction SilentlyContinue }
 
 Log "OK" "$upperName installed"
-
-    Blank
-    Prompt-ExitOrReturnToMenu
-    $Branch = 0
-    continue MainLoop
-}
 
 
 # Remove beta flag
@@ -2345,11 +2273,7 @@ Log "WARN" "But i had to turn updates of millennium off."
 Log "WARN" "In future, they will come back but in the meantime:"
 Log "OK"   "Manually check for updates of millennium if you want up to date."
 Log "AUX"  "Millennium is working now tho (latest version)."
-
-Blank
-Prompt-ExitOrReturnToMenu
-$Branch = 0
-continue MainLoop
+exit 0
 
 } # end if Branch 1 or 2
 
