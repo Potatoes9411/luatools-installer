@@ -55,7 +55,7 @@ $SupportedLanguages = [ordered]@{
     es = "Español"
     pt = "Português"
 }
-$ScriptLanguage = "en"
+$script:ScriptLanguage = "en"
 $Translations = @{ 
     en = @{ 
         "Luatools Tool Suite  |  .gg/luatools" = "  Luatools Tool Suite  |  .gg/luatools"
@@ -347,11 +347,11 @@ $TranslationFragments = @{
 function Translate {
     param([string]$Text)
     if (-not $Text) { return $Text }
-    if (-not $Translations.ContainsKey($ScriptLanguage)) { return $Text }
-    $langTable = $Translations[$ScriptLanguage]
+    if (-not $Translations.ContainsKey($script:ScriptLanguage)) { return $Text }
+    $langTable = $Translations[$script:ScriptLanguage]
     if ($langTable.ContainsKey($Text)) { return $langTable[$Text] }
-    if ($TranslationFragments.ContainsKey($ScriptLanguage)) {
-        foreach ($rule in $TranslationFragments[$ScriptLanguage]) {
+    if ($TranslationFragments.ContainsKey($script:ScriptLanguage)) {
+        foreach ($rule in $TranslationFragments[$script:ScriptLanguage]) {
             if ($Text.Contains($rule.From)) {
                 $Text = $Text.Replace($rule.From, $rule.To)
             }
@@ -419,9 +419,9 @@ function Set-Language {
     Blank
     $choice = Ask "Choose option"
     switch ($choice.Trim()) {
-        "1" { $ScriptLanguage = "en"; Log "OK" "Language set to English"; return }
-        "2" { $ScriptLanguage = "es"; Log "OK" "Language set to Español"; return }
-        "3" { $ScriptLanguage = "pt"; Log "OK" "Language set to Português"; return }
+        "1" { $script:ScriptLanguage = "en"; Log "OK" "Language set to English"; return }
+        "2" { $script:ScriptLanguage = "es"; Log "OK" "Language set to Español"; return }
+        "3" { $script:ScriptLanguage = "pt"; Log "OK" "Language set to Português"; return }
         default { Log "ERR" "Invalid selection"; Start-Sleep -Seconds 1; Set-Language; return }
     }
 }
@@ -2694,7 +2694,7 @@ $SupportedLanguages = [ordered]@{
     es = "Español"
     pt = "Português"
 }
-$ScriptLanguage = "en"
+$script:ScriptLanguage = "en"
 $Translations = @{ 
     en = @{ 
         "Luatools Tool Suite  |  .gg/luatools" = "  Luatools Tool Suite  |  .gg/luatools"
@@ -2986,11 +2986,11 @@ $TranslationFragments = @{
 function Translate {
     param([string]$Text)
     if (-not $Text) { return $Text }
-    if (-not $Translations.ContainsKey($ScriptLanguage)) { return $Text }
-    $langTable = $Translations[$ScriptLanguage]
+    if (-not $Translations.ContainsKey($script:ScriptLanguage)) { return $Text }
+    $langTable = $Translations[$script:ScriptLanguage]
     if ($langTable.ContainsKey($Text)) { return $langTable[$Text] }
-    if ($TranslationFragments.ContainsKey($ScriptLanguage)) {
-        foreach ($rule in $TranslationFragments[$ScriptLanguage]) {
+    if ($TranslationFragments.ContainsKey($script:ScriptLanguage)) {
+        foreach ($rule in $TranslationFragments[$script:ScriptLanguage]) {
             if ($Text.Contains($rule.From)) {
                 $Text = $Text.Replace($rule.From, $rule.To)
             }
@@ -3058,9 +3058,9 @@ function Set-Language {
     Blank
     $choice = Ask "Choose option"
     switch ($choice.Trim()) {
-        "1" { $ScriptLanguage = "en"; Log "OK" "Language set to English"; return }
-        "2" { $ScriptLanguage = "es"; Log "OK" "Language set to Español"; return }
-        "3" { $ScriptLanguage = "pt"; Log "OK" "Language set to Português"; return }
+        "1" { $script:ScriptLanguage = "en"; Log "OK" "Language set to English"; return }
+        "2" { $script:ScriptLanguage = "es"; Log "OK" "Language set to Español"; return }
+        "3" { $script:ScriptLanguage = "pt"; Log "OK" "Language set to Português"; return }
         default { Log "ERR" "Invalid selection"; Start-Sleep -Seconds 1; Set-Language; return }
     }
 }
