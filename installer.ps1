@@ -1,4 +1,4 @@
-﻿# Anyone seeing this? well don't waste time improving this script.
+# Anyone seeing this? well don't waste time improving this script.
 # It's messy and just temporary until i get the new version.
 
 param(
@@ -483,11 +483,39 @@ function Format-MenuText {
 
     $text = Translate $Text
     if ($Width -le 0) { return $text }
-    if ($text.Length -gt $Width) {
-        if ($Width -le 3) { return $text.Substring(0, $Width) }
-        return $text.Substring(0, $Width - 3).TrimEnd() + "..."
-    }
     return $text.PadRight($Width)
+}
+
+function Write-WrappedMenuText {
+    param(
+        [string]$Text,
+        [int]$Width,
+        [string]$Indent = "       ",
+        [System.ConsoleColor]$Color = [System.ConsoleColor]::DarkGray
+    )
+
+    $translated = Translate $Text
+    if (-not $translated) { return }
+
+    $words = $translated -split '\s+'
+    $line = ""
+    foreach ($word in $words) {
+        if (-not $word) { continue }
+        $candidate = if ($line) { "$line $word" } else { $word }
+        if ($candidate.Length -le $Width) {
+            $line = $candidate
+            continue
+        }
+
+        if ($line) {
+            Write-Host ("{0}{1}" -f $Indent, $line) -ForegroundColor $Color
+        }
+        $line = $word
+    }
+
+    if ($line) {
+        Write-Host ("{0}{1}" -f $Indent, $line) -ForegroundColor $Color
+    }
 }
 
 function Write-MenuLine {
@@ -503,8 +531,8 @@ function Write-MenuEntry {
         [string]$Detail = ""
     )
 
-    $titleText = Format-MenuText $Title 30
-    $statusText = if ($Status) { Format-MenuText $Status 14 } else { "" }
+    $titleText = Translate $Title
+    $statusText = if ($Status) { Translate $Status } else { "" }
 
     if ($Status) {
         Write-Host ("  {0,-2}  {1} {2}" -f $Number, $titleText, $statusText)
@@ -513,7 +541,7 @@ function Write-MenuEntry {
     }
 
     if ($Detail) {
-        Write-Host ("       {0}" -f (Format-MenuText $Detail 74)) -ForegroundColor DarkGray
+        Write-WrappedMenuText $Detail 74
     }
 }
 
@@ -543,8 +571,8 @@ function Write-MainMenu {
     Write-MenuEntry "10" "Millennium & SteamTools Reinstaller" "" "Reinstalls Millennium + SteamTools, fixes hardlink errors on reinstall"
 
     Blank
-    Write-Host ("  {0,-2}  {1}" -f "L", (Format-MenuText "Language / Idioma / Português" 30)) -ForegroundColor Cyan
-    Write-Host ("  {0,-2}  {1}" -f "Q", (Format-MenuText "Quit" 30)) -ForegroundColor DarkGray
+    Write-Host ("  {0,-2}  {1}" -f "L", (Translate "Language / Idioma / Português")) -ForegroundColor Cyan
+    Write-Host ("  {0,-2}  {1}" -f "Q", (Translate "Quit")) -ForegroundColor DarkGray
     Blank
 }
 
@@ -3122,11 +3150,39 @@ function Format-MenuText {
 
     $text = Translate $Text
     if ($Width -le 0) { return $text }
-    if ($text.Length -gt $Width) {
-        if ($Width -le 3) { return $text.Substring(0, $Width) }
-        return $text.Substring(0, $Width - 3).TrimEnd() + "..."
-    }
     return $text.PadRight($Width)
+}
+
+function Write-WrappedMenuText {
+    param(
+        [string]$Text,
+        [int]$Width,
+        [string]$Indent = "       ",
+        [System.ConsoleColor]$Color = [System.ConsoleColor]::DarkGray
+    )
+
+    $translated = Translate $Text
+    if (-not $translated) { return }
+
+    $words = $translated -split '\s+'
+    $line = ""
+    foreach ($word in $words) {
+        if (-not $word) { continue }
+        $candidate = if ($line) { "$line $word" } else { $word }
+        if ($candidate.Length -le $Width) {
+            $line = $candidate
+            continue
+        }
+
+        if ($line) {
+            Write-Host ("{0}{1}" -f $Indent, $line) -ForegroundColor $Color
+        }
+        $line = $word
+    }
+
+    if ($line) {
+        Write-Host ("{0}{1}" -f $Indent, $line) -ForegroundColor $Color
+    }
 }
 
 function Write-MenuLine {
@@ -3142,8 +3198,8 @@ function Write-MenuEntry {
         [string]$Detail = ""
     )
 
-    $titleText = Format-MenuText $Title 30
-    $statusText = if ($Status) { Format-MenuText $Status 14 } else { "" }
+    $titleText = Translate $Title
+    $statusText = if ($Status) { Translate $Status } else { "" }
 
     if ($Status) {
         Write-Host ("  {0,-2}  {1} {2}" -f $Number, $titleText, $statusText)
@@ -3152,7 +3208,7 @@ function Write-MenuEntry {
     }
 
     if ($Detail) {
-        Write-Host ("       {0}" -f (Format-MenuText $Detail 74)) -ForegroundColor DarkGray
+        Write-WrappedMenuText $Detail 74
     }
 }
 
@@ -3182,8 +3238,8 @@ function Write-MainMenu {
     Write-MenuEntry "10" "Millennium & SteamTools Reinstaller" "" "Reinstalls Millennium + SteamTools, fixes hardlink errors on reinstall"
 
     Blank
-    Write-Host ("  {0,-2}  {1}" -f "L", (Format-MenuText "Language / Idioma / Português" 30)) -ForegroundColor Cyan
-    Write-Host ("  {0,-2}  {1}" -f "Q", (Format-MenuText "Quit" 30)) -ForegroundColor DarkGray
+    Write-Host ("  {0,-2}  {1}" -f "L", (Translate "Language / Idioma / Português")) -ForegroundColor Cyan
+    Write-Host ("  {0,-2}  {1}" -f "Q", (Translate "Quit")) -ForegroundColor DarkGray
     Blank
 }
 
