@@ -44,11 +44,405 @@ function Log {
     $date   = Get-Date -Format "HH:mm:ss"
     $prefix = if ($NoNewline) { "`r[$date] " } else { "[$date] " }
     Write-Host $prefix -ForegroundColor Cyan -NoNewline
-    Write-Host "[$Type] $Message" -ForegroundColor $fg -NoNewline:$NoNewline
+    Write-Host "[$Type] $(Translate $Message)" -ForegroundColor $fg -NoNewline:$NoNewline
 }
 
 function Sep   { Write-Host ("=" * 63) -ForegroundColor Cyan }
 function Blank { Write-Host "" }
+
+$SupportedLanguages = [ordered]@{
+    en = "English"
+    es = "Español"
+    pt = "Português"
+}
+$ScriptLanguage = "en"
+$Translations = @{ 
+    en = @{ 
+        "Luatools Tool Suite  |  .gg/luatools" = "  Luatools Tool Suite  |  .gg/luatools"
+        "  INSTALL / UPDATE" = "  INSTALL / UPDATE"
+        "  FIXES" = "  FIXES"
+        "  OTHER" = "  OTHER"
+        "Install Luatools plugin              " = "Install Luatools plugin              "
+        "Install steamtools-collection        " = "Install steamtools-collection        "
+        "Spacetheme Block Remover             " = "Spacetheme Block Remover             "
+        "Removes the 'get a job loser' block  " = "Removes the 'get a job loser' block  "
+        "by waike" = "by waike"
+        "Steam Offline Fix" = "Steam Offline Fix"
+        "Fixes Steam stuck on loading icon    " = "Fixes Steam stuck on loading icon    "
+        "Steam Bulk Fixer" = "Steam Bulk Fixer"
+        "Runs various Steam/Steamtools fixes  " = "Runs various Steam/Steamtools fixes  "
+        "ST Uninstaller" = "ST Uninstaller"
+        "Full Steamtools/Luatools uninstaller " = "Full Steamtools/Luatools uninstaller "
+        "by Potatoes9411" = "by Potatoes9411"
+        "Steam Manifest Downloader" = "Steam Manifest Downloader"
+        "Downloads depot manifests when       " = "Downloads depot manifests when       "
+        "by Skyflare (Modified by Potatoes9411)" = "by Skyflare (Modified by Potatoes9411)"
+        "SteamTools servers are unavailable   " = "SteamTools servers are unavailable   "
+        "No Internet Connection Fix" = "No Internet Connection Fix"
+        "Fixes Steam 'No Internet' errors via " = "Fixes Steam 'No Internet' errors via "
+        "Program by SelectivelyGood | Script by Peron" = "Program by SelectivelyGood | Script by Peron"
+        "CloudRedirectCLI /stfixer            " = "CloudRedirectCLI /stfixer            "
+        "Download / Launch CloudRedirect (GUI)" = "Download / Launch CloudRedirect (GUI)"
+        "Downloads & launches CloudRedirect   " = "Downloads & launches CloudRedirect   "
+        "by Potatoes9411 | App by SelectivelyGood" = "by Potatoes9411 | App by SelectivelyGood"
+        "GUI, or runs it if already installed " = "GUI, or runs it if already installed "
+        "Millennium & SteamTools Reinstaller" = "Millennium & SteamTools Reinstaller"
+        "Reinstalls Millennium + SteamTools,  " = "Reinstalls Millennium + SteamTools,  "
+        "by clem.la & melly" = "by clem.la & melly"
+        "fixes hardlink errors on reinstall   " = "fixes hardlink errors on reinstall   "
+        "Quit" = "Quit"
+        "Select an option" = "Select an option"
+        "Skip Windows Defender exclusions? (y/N)" = "Skip Windows Defender exclusions? (y/N)"
+        "Choose option" = "Choose option"
+        "Press Enter to exit" = "Press Enter to exit"
+        "Press Enter to go back" = "Press Enter to go back"
+        "Toggle option or run" = "Toggle option or run"
+        "Restart Steam? (y/n)" = "Restart Steam? (y/n)"
+        "Are you sure you want to continue? (Y/N)" = "Are you sure you want to continue? (Y/N)"
+        "Invalid selection" = "Invalid selection"
+        "Select language:" = "Select language:"
+        "Language set to English" = "Language set to English"
+        "Language set to Español" = "Language set to Español"
+        "Language set to Português" = "Language set to Português"
+        "Hey! Just letting you know that i'm working on a new version combining various scripts of the server" = "Hey! Just letting you know that i'm working on a new version combining various scripts of the server"
+        "Will include language support on THIS script too, luv y'all brazilians" = "Will include language support on THIS script too, luv y'all brazilians"
+    }
+    es = @{ 
+        "Luatools Tool Suite  |  .gg/luatools" = "  Luatools Tool Suite  |  .gg/luatools"
+        "  INSTALL / UPDATE" = "  INSTALAR / ACTUALIZAR"
+        "  FIXES" = "  ARREGLA"
+        "  OTHER" = "  OTROS"
+        "Install Luatools plugin              " = "Instalar plugin de Luatools              "
+        "Install steamtools-collection        " = "Instalar steamtools-collection        "
+        "Spacetheme Block Remover             " = "Eliminador de Bloques Spacetheme      "
+        "Removes the 'get a job loser' block  " = "Elimina el bloque 'get a job loser'   "
+        "by waike" = "por waike"
+        "Steam Offline Fix" = "Arreglo de Steam sin conexión"
+        "Fixes Steam stuck on loading icon    " = "Repara Steam atascado en el icono de carga"
+        "Steam Bulk Fixer" = "Arreglo Masivo de Steam"
+        "Runs various Steam/Steamtools fixes  " = "Ejecuta varios arreglos de Steam/Steamtools"
+        "ST Uninstaller" = "Desinstalador ST"
+        "Full Steamtools/Luatools uninstaller " = "Desinstalador completo Steamtools/Luatools "
+        "by Potatoes9411" = "por Potatoes9411"
+        "Steam Manifest Downloader" = "Descargador de manifiestos de Steam"
+        "Downloads depot manifests when       " = "Descarga manifiestos cuando       "
+        "by Skyflare (Modified by Potatoes9411)" = "por Skyflare (Modificado por Potatoes9411)"
+        "SteamTools servers are unavailable   " = "Los servidores SteamTools no están disponibles  "
+        "No Internet Connection Fix" = "Arreglo de conexión sin Internet"
+        "Fixes Steam 'No Internet' errors via " = "Repara errores 'Sin Internet' de Steam vía "
+        "Program by SelectivelyGood | Script by Peron" = "Programa por SelectivelyGood | Script por Peron"
+        "CloudRedirectCLI /stfixer            " = "CloudRedirectCLI /stfixer            "
+        "Download / Launch CloudRedirect (GUI)" = "Descargar / Ejecutar CloudRedirect (GUI)"
+        "Downloads & launches CloudRedirect   " = "Descarga y ejecuta CloudRedirect   "
+        "by Potatoes9411 | App by SelectivelyGood" = "por Potatoes9411 | App por SelectivelyGood"
+        "GUI, or runs it if already installed " = "GUI, o lo ejecuta si ya está instalado "
+        "Millennium & SteamTools Reinstaller" = "Reinstalador Millennium y SteamTools"
+        "Reinstalls Millennium + SteamTools,  " = "Reinstala Millennium + SteamTools,  "
+        "by clem.la & melly" = "por clem.la & melly"
+        "fixes hardlink errors on reinstall   " = "arregla errores de hardlink al reinstalar   "
+        "Quit" = "Salir"
+        "Select an option" = "Selecciona una opción"
+        "Skip Windows Defender exclusions? (y/N)" = "¿Omitir exclusiones de Windows Defender? (s/N)"
+        "Choose option" = "Elige una opción"
+        "Press Enter to exit" = "Presiona Enter para salir"
+        "Press Enter to go back" = "Presiona Enter para volver"
+        "Toggle option or run" = "Activa opción o ejecuta"
+        "Restart Steam? (y/n)" = "¿Reiniciar Steam? (s/n)"
+        "Are you sure you want to continue? (Y/N)" = "¿Estás seguro de que quieres continuar? (S/N)"
+        "Invalid selection" = "Selección inválida"
+        "Select language:" = "Selecciona idioma:"
+        "Language set to English" = "Idioma cambiado a Inglés"
+        "Language set to Español" = "Idioma cambiado a Español"
+        "Language set to Português" = "Idioma cambiado a Portugués"
+        "Hey! Just letting you know that i'm working on a new version combining various scripts of the server" = "¡Oye! Solo para avisarte que estoy trabajando en una nueva versión combinando varios scripts del servidor"
+        "Will include language support on THIS script too, luv y'all brazilians" = "También incluirá soporte de idioma en ESTE script, los amo brasileños"
+        "DOWNLOAD COMPLETE" = "DESCARGA COMPLETA"
+        "FAILED DOWNLOADS:" = "DESCARGAS FALLIDAS:"
+        "What would you like to do next?" = "¿Qué quieres hacer ahora?"
+        "Return to Main Menu" = "Volver al menú principal"
+        "Done! (close PowerShell)" = "Listo. (cerrar PowerShell)"
+        "Run the fix now" = "Ejecutar la corrección ahora"
+        "View the PowerShell command manually" = "Ver el comando de PowerShell manualmente"
+        "Back to Main Menu" = "Volver al menú principal"
+        "HOW TO USE THIS FIX" = "CÓMO USAR ESTA CORRECCIÓN"
+        "WHAT DOES THIS DO?" = "¿QUÉ HACE ESTO?"
+        "Manual PowerShell Command" = "Comando manual de PowerShell"
+        "Select download mode:" = "Selecciona el modo de descarga:"
+        "Select processing mode:" = "Selecciona el modo de procesamiento:"
+        "Enter choice (1-2)" = "Introduce una opción (1-2)"
+        "Enter choice (1-3)" = "Introduce una opción (1-3)"
+        "Enter ManifestHub API Key" = "Introduce la clave API de ManifestHub"
+        "Enter Morrenus API Key" = "Introduce la clave API de Morrenus"
+        "Enter Steam AppID (Not Depot ID or DLC ID)" = "Introduce el AppID de Steam (no el Depot ID ni DLC ID)"
+        "Expected path:" = "Ruta esperada:"
+        "Expected: smm_ followed by 96 hex characters (total 100 chars)" = "Se espera: smm_ seguido de 96 caracteres hexadecimales (100 caracteres en total)"
+        "Steam installation not found. Is Steam installed?" = "No se encontró la instalación de Steam. ¿Steam está instalado?"
+        "Steam not found." = "No se encontró Steam."
+        "Steam stopped." = "Steam detenido."
+        "Stopping Steam..." = "Deteniendo Steam..."
+        "Removing conflicting files..." = "Eliminando archivos en conflicto..."
+        "Cleanup done." = "Limpieza completada."
+        "Clearing SteamTools registry flags..." = "Borrando banderas del registro de SteamTools..."
+        "Registry flags cleared." = "Banderas del registro borradas."
+        "Running Millennium & SteamTools Reinstaller..." = "Ejecutando reinstalador de Millennium y SteamTools..."
+        "Running No Internet Connection Fix..." = "Ejecutando corrección de no conexión a Internet..."
+        "Running uninstaller..." = "Ejecutando desinstalador..."
+        "Downloading CloudRedirect..." = "Descargando CloudRedirect..."
+        "CloudRedirectCLI completed successfully." = "CloudRedirectCLI se completó correctamente."
+        "CloudRedirectCLI exited with code: " = "CloudRedirectCLI salió con código: "
+        "Failed to run CloudRedirectCLI: " = "No se pudo ejecutar CloudRedirectCLI: "
+        "Download failed: " = "La descarga falló: "
+        "Downloaded to: " = "Descargado en: "
+        "Cleaning up temp file..." = "Limpiando archivo temporal..."
+    }
+    pt = @{ 
+        "Luatools Tool Suite  |  .gg/luatools" = "  Luatools Tool Suite  |  .gg/luatools"
+        "  INSTALL / UPDATE" = "  INSTALAR / ATUALIZAR"
+        "  FIXES" = "  CORREÇÕES"
+        "  OTHER" = "  OUTROS"
+        "Install Luatools plugin              " = "Instalar plugin Luatools              "
+        "Install steamtools-collection        " = "Instalar steamtools-collection        "
+        "Spacetheme Block Remover             " = "Removedor de Blocos Spacetheme        "
+        "Removes the 'get a job loser' block  " = "Remove o bloco 'get a job loser'   "
+        "by waike" = "por waike"
+        "Steam Offline Fix" = "Correção Steam Offline"
+        "Fixes Steam stuck on loading icon    " = "Corrige Steam preso no ícone de carregamento"
+        "Steam Bulk Fixer" = "Corretor em Massa do Steam"
+        "Runs various Steam/Steamtools fixes  " = "Executa várias correções do Steam/Steamtools"
+        "ST Uninstaller" = "Desinstalador ST"
+        "Full Steamtools/Luatools uninstaller " = "Desinstalador completo Steamtools/Luatools "
+        "by Potatoes9411" = "por Potatoes9411"
+        "Steam Manifest Downloader" = "Downloader de Manifestos Steam"
+        "Downloads depot manifests when       " = "Baixa manifestos quando       "
+        "by Skyflare (Modified by Potatoes9411)" = "por Skyflare (Modificado por Potatoes9411)"
+        "SteamTools servers are unavailable   " = "Servidores SteamTools indisponíveis  "
+        "No Internet Connection Fix" = "Correção de Sem Conexão com Internet"
+        "Fixes Steam 'No Internet' errors via " = "Corrige erros 'Sem Internet' do Steam via "
+        "Program by SelectivelyGood | Script by Peron" = "Programa por SelectivelyGood | Script por Peron"
+        "CloudRedirectCLI /stfixer            " = "CloudRedirectCLI /stfixer            "
+        "Download / Launch CloudRedirect (GUI)" = "Baixar / Executar CloudRedirect (GUI)"
+        "Downloads & launches CloudRedirect   " = "Baixa e executa CloudRedirect   "
+        "by Potatoes9411 | App by SelectivelyGood" = "por Potatoes9411 | App por SelectivelyGood"
+        "GUI, or runs it if already installed " = "GUI, ou o executa se já estiver instalado "
+        "Millennium & SteamTools Reinstaller" = "Reinstalador Millennium & SteamTools"
+        "Reinstalls Millennium + SteamTools,  " = "Reinstala Millennium + SteamTools,  "
+        "by clem.la & melly" = "por clem.la & melly"
+        "fixes hardlink errors on reinstall   " = "corrige erros de hardlink na reinstalação   "
+        "Quit" = "Sair"
+        "Select an option" = "Selecione uma opção"
+        "Skip Windows Defender exclusions? (y/N)" = "Pular exclusões do Windows Defender? (s/N)"
+        "Choose option" = "Escolha uma opção"
+        "Press Enter to exit" = "Pressione Enter para sair"
+        "Press Enter to go back" = "Pressione Enter para voltar"
+        "Toggle option or run" = "Alternar opção ou executar"
+        "Restart Steam? (y/n)" = "Reiniciar Steam? (s/n)"
+        "Are you sure you want to continue? (Y/N)" = "Tem certeza de que deseja continuar? (S/N)"
+        "Invalid selection" = "Seleção inválida"
+        "Select language:" = "Selecione o idioma:"
+        "Language set to English" = "Idioma definido para Inglês"
+        "Language set to Español" = "Idioma definido para Espanhol"
+        "Language set to Português" = "Idioma definido para Português"
+        "Hey! Just letting you know that i'm working on a new version combining various scripts of the server" = "Ei! Apenas avisando que estou trabalhando em uma nova versão combinando vários scripts do servidor"
+        "Will include language support on THIS script too, luv y'all brazilians" = "Também incluirá suporte de idioma neste script, amo vocês brasileiros"
+        "DOWNLOAD COMPLETE" = "DOWNLOAD CONCLUÍDO"
+        "FAILED DOWNLOADS:" = "DOWNLOADS FALHADOS:"
+        "What would you like to do next?" = "O que você quer fazer agora?"
+        "Return to Main Menu" = "Voltar ao menu principal"
+        "Done! (close PowerShell)" = "Concluído! (feche o PowerShell)"
+        "Run the fix now" = "Executar a correção agora"
+        "View the PowerShell command manually" = "Ver o comando do PowerShell manualmente"
+        "Back to Main Menu" = "Voltar ao menu principal"
+        "HOW TO USE THIS FIX" = "COMO USAR ESTA CORREÇÃO"
+        "WHAT DOES THIS DO?" = "O QUE ISTO FAZ?"
+        "Manual PowerShell Command" = "Comando manual do PowerShell"
+        "Select download mode:" = "Selecione o modo de download:"
+        "Select processing mode:" = "Selecione o modo de processamento:"
+        "Enter choice (1-2)" = "Digite a opção (1-2)"
+        "Enter choice (1-3)" = "Digite a opção (1-3)"
+        "Enter ManifestHub API Key" = "Digite a chave API do ManifestHub"
+        "Enter Morrenus API Key" = "Digite a chave API do Morrenus"
+        "Enter Steam AppID (Not Depot ID or DLC ID)" = "Digite o AppID do Steam (não o Depot ID nem o DLC ID)"
+        "Expected path:" = "Caminho esperado:"
+        "Expected: smm_ followed by 96 hex characters (total 100 chars)" = "Esperado: smm_ seguido de 96 caracteres hexadecimais (100 caracteres no total)"
+        "Steam installation not found. Is Steam installed?" = "Instalação do Steam não encontrada. O Steam está instalado?"
+        "Steam not found." = "Steam não encontrado."
+        "Steam stopped." = "Steam parado."
+        "Stopping Steam..." = "Parando o Steam..."
+        "Removing conflicting files..." = "Removendo arquivos conflitantes..."
+        "Cleanup done." = "Limpeza concluída."
+        "Clearing SteamTools registry flags..." = "Limpando flags do registro do SteamTools..."
+        "Registry flags cleared." = "Flags do registro limpas."
+        "Running Millennium & SteamTools Reinstaller..." = "Executando reinstalador de Millennium e SteamTools..."
+        "Running No Internet Connection Fix..." = "Executando correção de sem conexão com a Internet..."
+        "Running uninstaller..." = "Executando desinstalador..."
+        "Downloading CloudRedirect..." = "Baixando CloudRedirect..."
+        "CloudRedirectCLI completed successfully." = "CloudRedirectCLI concluído com sucesso."
+        "CloudRedirectCLI exited with code: " = "CloudRedirectCLI saiu com o código: "
+        "Failed to run CloudRedirectCLI: " = "Falha ao executar CloudRedirectCLI: "
+        "Download failed: " = "Falha no download: "
+        "Downloaded to: " = "Baixado em: "
+        "Cleaning up temp file..." = "Limpando arquivo temporário..."
+    }
+}
+
+$TranslationFragments = @{
+    es = @(
+        @{ From = "Attempt "; To = "Intento " }
+        @{ From = " failed "; To = " falló " }
+        @{ From = "Retrying in "; To = "Reintentando en " }
+        @{ From = "Not on GitHub, trying Morrenus..."; To = "No está en GitHub, probando Morrenus..." }
+        @{ From = "Not on GitHub, trying ManifestHub..."; To = "No está en GitHub, probando ManifestHub..." }
+        @{ From = "Not Out-Of-Date"; To = "No está desactualizado" }
+        @{ From = "DOWNLOAD COMPLETE"; To = "DESCARGA COMPLETA" }
+        @{ From = "FAILED DOWNLOADS:"; To = "DESCARGAS FALLIDAS:" }
+        @{ From = "Select download mode:"; To = "Selecciona el modo de descarga:" }
+        @{ From = "Select processing mode:"; To = "Selecciona el modo de procesamiento:" }
+        @{ From = "Running No Internet Connection Fix..."; To = "Ejecutando corrección de no conexión a Internet..." }
+        @{ From = "Running Millennium & SteamTools Reinstaller..."; To = "Ejecutando reinstalador de Millennium y SteamTools..." }
+        @{ From = "Running uninstaller..."; To = "Ejecutando desinstalador..." }
+        @{ From = "Downloading CloudRedirect..."; To = "Descargando CloudRedirect..." }
+        @{ From = "CloudRedirectCLI completed successfully."; To = "CloudRedirectCLI se completó correctamente." }
+        @{ From = "CloudRedirectCLI exited with code: "; To = "CloudRedirectCLI salió con código: " }
+        @{ From = "Failed to run CloudRedirectCLI: "; To = "No se pudo ejecutar CloudRedirectCLI: " }
+        @{ From = "Steam installation not found. Is Steam installed?"; To = "No se encontró la instalación de Steam. ¿Steam está instalado?" }
+        @{ From = "Steam not found."; To = "No se encontró Steam." }
+        @{ From = "What would you like to do next?"; To = "¿Qué quieres hacer ahora?" }
+        @{ From = "Return to Main Menu"; To = "Volver al menú principal" }
+        @{ From = "Done! (close PowerShell)"; To = "Listo. (cerrar PowerShell)" }
+        @{ From = "Run the fix now"; To = "Ejecutar la corrección ahora" }
+        @{ From = "View the PowerShell command manually"; To = "Ver el comando de PowerShell manualmente" }
+        @{ From = "Back to Main Menu"; To = "Volver al menú principal" }
+        @{ From = "HOW TO USE THIS FIX"; To = "CÓMO USAR ESTA CORRECCIÓN" }
+        @{ From = "WHAT DOES THIS DO?"; To = "¿QUÉ HACE ESTO?" }
+        @{ From = "Manual PowerShell Command"; To = "Comando manual de PowerShell" }
+        @{ From = "BATCH PROGRESS"; To = "PROGRESO POR LOTES" }
+        @{ From = "Downloaded:"; To = "Descargado:" }
+        @{ From = "Skipped:"; To = "Omitido:" }
+        @{ From = "Failed:"; To = "Fallido:" }
+        @{ From = "Apps Scanned:"; To = "Juegos analizados:" }
+        @{ From = "Time Elapsed:"; To = "Tiempo transcurrido:" }
+        @{ From = "Output:"; To = "Salida:" }
+    )
+    pt = @(
+        @{ From = "Attempt "; To = "Tentativa " }
+        @{ From = " failed "; To = " falhou " }
+        @{ From = "Retrying in "; To = "Tentando novamente em " }
+        @{ From = "Not on GitHub, trying Morrenus..."; To = "Não está no GitHub, tentando Morrenus..." }
+        @{ From = "Not on GitHub, trying ManifestHub..."; To = "Não está no GitHub, tentando ManifestHub..." }
+        @{ From = "Not Out-Of-Date"; To = "Não está desatualizado" }
+        @{ From = "DOWNLOAD COMPLETE"; To = "DOWNLOAD CONCLUÍDO" }
+        @{ From = "FAILED DOWNLOADS:"; To = "DOWNLOADS FALHADOS:" }
+        @{ From = "Select download mode:"; To = "Selecione o modo de download:" }
+        @{ From = "Select processing mode:"; To = "Selecione o modo de processamento:" }
+        @{ From = "Running No Internet Connection Fix..."; To = "Executando correção de sem conexão com a Internet..." }
+        @{ From = "Running Millennium & SteamTools Reinstaller..."; To = "Executando reinstalador de Millennium e SteamTools..." }
+        @{ From = "Running uninstaller..."; To = "Executando desinstalador..." }
+        @{ From = "Downloading CloudRedirect..."; To = "Baixando CloudRedirect..." }
+        @{ From = "CloudRedirectCLI completed successfully."; To = "CloudRedirectCLI concluído com sucesso." }
+        @{ From = "CloudRedirectCLI exited with code: "; To = "CloudRedirectCLI saiu com o código: " }
+        @{ From = "Failed to run CloudRedirectCLI: "; To = "Falha ao executar CloudRedirectCLI: " }
+        @{ From = "Steam installation not found. Is Steam installed?"; To = "Instalação do Steam não encontrada. O Steam está instalado?" }
+        @{ From = "Steam not found."; To = "Steam não encontrado." }
+        @{ From = "What would you like to do next?"; To = "O que você quer fazer agora?" }
+        @{ From = "Return to Main Menu"; To = "Voltar ao menu principal" }
+        @{ From = "Done! (close PowerShell)"; To = "Concluído! (feche o PowerShell)" }
+        @{ From = "Run the fix now"; To = "Executar a correção agora" }
+        @{ From = "View the PowerShell command manually"; To = "Ver o comando do PowerShell manualmente" }
+        @{ From = "Back to Main Menu"; To = "Voltar ao menu principal" }
+        @{ From = "HOW TO USE THIS FIX"; To = "COMO USAR ESTA CORREÇÃO" }
+        @{ From = "WHAT DOES THIS DO?"; To = "O QUE ISTO FAZ?" }
+        @{ From = "Manual PowerShell Command"; To = "Comando manual do PowerShell" }
+        @{ From = "BATCH PROGRESS"; To = "PROGRESSO DO LOTE" }
+        @{ From = "Downloaded:"; To = "Baixado:" }
+        @{ From = "Skipped:"; To = "Ignorado:" }
+        @{ From = "Failed:"; To = "Falhou:" }
+        @{ From = "Apps Scanned:"; To = "Jogos verificados:" }
+        @{ From = "Time Elapsed:"; To = "Tempo decorrido:" }
+        @{ From = "Output:"; To = "Saída:" }
+    )
+}
+
+function Translate {
+    param([string]$Text)
+    if (-not $Text) { return $Text }
+    if (-not $Translations.ContainsKey($ScriptLanguage)) { return $Text }
+    $langTable = $Translations[$ScriptLanguage]
+    if ($langTable.ContainsKey($Text)) { return $langTable[$Text] }
+    if ($TranslationFragments.ContainsKey($ScriptLanguage)) {
+        foreach ($rule in $TranslationFragments[$ScriptLanguage]) {
+            if ($Text.Contains($rule.From)) {
+                $Text = $Text.Replace($rule.From, $rule.To)
+            }
+        }
+    }
+    return $Text
+}
+
+function Write-Host {
+    param(
+        [Parameter(Position=0, ValueFromPipeline=$true)]
+        [object]$Object,
+        [System.ConsoleColor]$ForegroundColor,
+        [System.ConsoleColor]$BackgroundColor,
+        [switch]$NoNewline,
+        [string]$Separator
+    )
+
+    if ($Object -is [string]) {
+        $Object = Translate $Object
+    }
+
+    $params = @{}
+    if ($PSBoundParameters.ContainsKey('Object')) { $params.Object = $Object }
+    if ($PSBoundParameters.ContainsKey('ForegroundColor')) { $params.ForegroundColor = $ForegroundColor }
+    if ($PSBoundParameters.ContainsKey('BackgroundColor')) { $params.BackgroundColor = $BackgroundColor }
+    if ($PSBoundParameters.ContainsKey('NoNewline')) { $params.NoNewline = $true }
+    if ($PSBoundParameters.ContainsKey('Separator')) { $params.Separator = $Separator }
+
+    Microsoft.PowerShell.Utility\Write-Host @params
+}
+
+function WriteLocalized {
+    param(
+        [string]$Text,
+        [System.ConsoleColor]$ForegroundColor = [System.ConsoleColor]::White,
+        [switch]$NoNewline
+    )
+    Write-Host $Text -ForegroundColor $ForegroundColor -NoNewline:$NoNewline
+}
+
+function Ask {
+    param([string]$Prompt)
+    return Microsoft.PowerShell.Utility\Read-Host -Prompt (Translate $Prompt)
+}
+
+function Read-Host {
+    param(
+        [Parameter(Mandatory=$true, Position=0)][string]$Prompt
+    )
+    return Microsoft.PowerShell.Utility\Read-Host -Prompt (Translate $Prompt)
+}
+
+function Set-Language {
+    Clear-Host
+    Sep
+    WriteLocalized "Select language:" -ForegroundColor Cyan
+    Sep
+    Blank
+    $index = 1
+    foreach ($code in $SupportedLanguages.Keys) {
+        WriteLocalized "  $index. $($SupportedLanguages[$code])"
+        $index++
+    }
+    Blank
+    $choice = Ask "Choose option"
+    switch ($choice.Trim()) {
+        "1" { $ScriptLanguage = "en"; Log "OK" "Language set to English"; return }
+        "2" { $ScriptLanguage = "es"; Log "OK" "Language set to Español"; return }
+        "3" { $ScriptLanguage = "pt"; Log "OK" "Language set to Português"; return }
+        default { Log "ERR" "Invalid selection"; Start-Sleep -Seconds 1; Set-Language; return }
+    }
+}
 
 $ProgressPreference = 'SilentlyContinue'
 
@@ -102,98 +496,100 @@ function Get-SpacethemeStatus {
 function Write-MainMenu {
     Clear-Host
     Sep
-    Write-Host "  Luatools Tool Suite  |  .gg/luatools" -ForegroundColor Cyan
+    WriteLocalized "Luatools Tool Suite  |  .gg/luatools" -ForegroundColor Cyan
     Sep
     Blank
 
-    Write-Host "  INSTALL / UPDATE" -ForegroundColor DarkGray
+    WriteLocalized "  INSTALL / UPDATE" -ForegroundColor DarkGray
     Write-Host "  1   " -ForegroundColor Cyan -NoNewline
-    Write-Host "Install Luatools plugin              " -NoNewline
+    WriteLocalized "Install Luatools plugin              " -NoNewline
     Write-Host (Get-PluginStatus "luatools") -ForegroundColor DarkGray
 
     Write-Host "  2   " -ForegroundColor Cyan -NoNewline
-    Write-Host "Install steamtools-collection        " -NoNewline
+    WriteLocalized "Install steamtools-collection        " -NoNewline
     Write-Host (Get-PluginStatus "steamtools-collection") -ForegroundColor DarkGray
 
     Blank
-    Write-Host "  FIXES" -ForegroundColor DarkGray
+    WriteLocalized "  FIXES" -ForegroundColor DarkGray
 
     Write-Host "  3   " -ForegroundColor Cyan -NoNewline
-    Write-Host "Spacetheme Block Remover             " -NoNewline
+    WriteLocalized "Spacetheme Block Remover             " -NoNewline
     Write-Host (Get-SpacethemeStatus) -ForegroundColor DarkGray
     Write-Host "       " -NoNewline
-    Write-Host "Removes the 'get a job loser' block  " -NoNewline
-    Write-Host "by waike" -ForegroundColor DarkGray
+    WriteLocalized "Removes the 'get a job loser' block  " -NoNewline
+    WriteLocalized "by waike" -ForegroundColor DarkGray
 
     Blank
     Write-Host "  4   " -ForegroundColor Cyan -NoNewline
-    Write-Host "Steam Offline Fix"
+    WriteLocalized "Steam Offline Fix"
     Write-Host "       " -NoNewline
-    Write-Host "Fixes Steam stuck on loading icon    " -NoNewline
-    Write-Host "by waike" -ForegroundColor DarkGray
+    WriteLocalized "Fixes Steam stuck on loading icon    " -NoNewline
+    WriteLocalized "by waike" -ForegroundColor DarkGray
 
     Blank
     Write-Host "  6   " -ForegroundColor Cyan -NoNewline
-    Write-Host "Steam Bulk Fixer"
+    WriteLocalized "Steam Bulk Fixer"
     Write-Host "       " -NoNewline
-    Write-Host "Runs various Steam/Steamtools fixes  " -NoNewline
-    Write-Host "by waike" -ForegroundColor DarkGray
+    WriteLocalized "Runs various Steam/Steamtools fixes  " -NoNewline
+    WriteLocalized "by waike" -ForegroundColor DarkGray
 
     Blank
-    Write-Host "  OTHER" -ForegroundColor DarkGray
+    WriteLocalized "  OTHER" -ForegroundColor DarkGray
 
     Write-Host "  5   " -ForegroundColor Cyan -NoNewline
-    Write-Host "ST Uninstaller"
+    WriteLocalized "ST Uninstaller"
     Write-Host "       " -NoNewline
-    Write-Host "Full Steamtools/Luatools uninstaller " -NoNewline
-    Write-Host "by Potatoes9411" -ForegroundColor DarkGray
+    WriteLocalized "Full Steamtools/Luatools uninstaller " -NoNewline
+    WriteLocalized "by Potatoes9411" -ForegroundColor DarkGray
 
     Blank
     Write-Host "  7   " -ForegroundColor Cyan -NoNewline
-    Write-Host "Steam Manifest Downloader"
+    WriteLocalized "Steam Manifest Downloader"
     Write-Host "       " -NoNewline
-    Write-Host "Downloads depot manifests when       " -NoNewline
-    Write-Host "by Skyflare (Modified by Potatoes9411)" -ForegroundColor DarkGray
+    WriteLocalized "Downloads depot manifests when       " -NoNewline
+    WriteLocalized "by Skyflare (Modified by Potatoes9411)" -ForegroundColor DarkGray
     Write-Host "       " -NoNewline
-    Write-Host "SteamTools servers are unavailable   " -ForegroundColor DarkGray
+    WriteLocalized "SteamTools servers are unavailable   " -ForegroundColor DarkGray
 
     Blank
     Write-Host "  8   " -ForegroundColor Cyan -NoNewline
-    Write-Host "No Internet Connection Fix"
+    WriteLocalized "No Internet Connection Fix"
     Write-Host "       " -NoNewline
-    Write-Host "Fixes Steam 'No Internet' errors via " -NoNewline
-    Write-Host "Program by SelectivelyGood | Script by Peron" -ForegroundColor DarkGray
+    WriteLocalized "Fixes Steam 'No Internet' errors via " -NoNewline
+    WriteLocalized "Program by SelectivelyGood | Script by Peron" -ForegroundColor DarkGray
     Write-Host "       " -NoNewline
-    Write-Host "CloudRedirectCLI /stfixer            " -ForegroundColor DarkGray
+    WriteLocalized "CloudRedirectCLI /stfixer            " -ForegroundColor DarkGray
 
     Blank
     Write-Host "  9   " -ForegroundColor Cyan -NoNewline
-    Write-Host "Download / Launch CloudRedirect (GUI)"
+    WriteLocalized "Download / Launch CloudRedirect (GUI)"
     Write-Host "       " -NoNewline
-    Write-Host "Downloads & launches CloudRedirect   " -NoNewline
-    Write-Host "by Potatoes9411 | App by SelectivelyGood" -ForegroundColor DarkGray
+    WriteLocalized "Downloads & launches CloudRedirect   " -NoNewline
+    WriteLocalized "by Potatoes9411 | App by SelectivelyGood" -ForegroundColor DarkGray
     Write-Host "       " -NoNewline
-    Write-Host "GUI, or runs it if already installed " -ForegroundColor DarkGray
+    WriteLocalized "GUI, or runs it if already installed " -ForegroundColor DarkGray
 
     Blank
     Write-Host "  10  " -ForegroundColor Cyan -NoNewline
-    Write-Host "Millennium & SteamTools Reinstaller"
+    WriteLocalized "Millennium & SteamTools Reinstaller"
     Write-Host "       " -NoNewline
-    Write-Host "Reinstalls Millennium + SteamTools,  " -NoNewline
-    Write-Host "by clem.la & melly" -ForegroundColor DarkGray
+    WriteLocalized "Reinstalls Millennium + SteamTools,  " -NoNewline
+    WriteLocalized "by clem.la & melly" -ForegroundColor DarkGray
     Write-Host "       " -NoNewline
-    Write-Host "fixes hardlink errors on reinstall   " -ForegroundColor DarkGray
+    WriteLocalized "fixes hardlink errors on reinstall   " -ForegroundColor DarkGray
 
     Blank
+    Write-Host "  L   " -ForegroundColor Cyan -NoNewline
+    WriteLocalized "Language / Idioma / Português"
     Write-Host "  Q   " -ForegroundColor DarkGray -NoNewline
-    Write-Host "Quit"
+    WriteLocalized "Quit"
     Blank
 }
 
 if (-not $Branch) {
     while ($true) {
         Write-MainMenu
-        $sel = Read-Host "Select an option"
+        $sel = Ask "Select an option"
         switch ($sel.Trim().ToUpper()) {
             "1" { $Branch = 1; break }
             "2" { $Branch = 2; break }
@@ -202,7 +598,7 @@ if (-not $Branch) {
             "5" { $Branch = 5; break }
             "6" {
                 $Branch = 6
-                $defChoice = Read-Host "Skip Windows Defender exclusions? (y/N)"
+                $defChoice = Ask "Skip Windows Defender exclusions? (y/N)"
                 if ($defChoice.Trim() -ieq "y") { $SkipDefender = $true }
                 break
             }
@@ -210,6 +606,7 @@ if (-not $Branch) {
             "8" { $Branch = 8; break }
             "9" { $Branch = 9; break }
             "10" { $Branch = 10; break }
+            "L" { Set-Language; continue }
             "Q" { exit 0 }
             default { continue }
         }
