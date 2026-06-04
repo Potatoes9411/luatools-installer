@@ -1,4 +1,4 @@
-# Anyone seeing this? well don't waste time improving this script.
+﻿# Anyone seeing this? well don't waste time improving this script.
 # It's messy and just temporary until i get the new version.
 
 param(
@@ -112,6 +112,25 @@ $Translations = @{
         "  INSTALL / UPDATE" = "  INSTALAR / ACTUALIZAR"
         "  FIXES" = "  ARREGLA"
         "  OTHER" = "  OTROS"
+        "Install Luatools plugin" = "Instalar plugin de Luatools"
+        "Install steamtools-collection" = "Instalar steamtools-collection"
+        "Spacetheme Block Remover" = "Eliminador de bloqueo Spacetheme"
+        "Steam Offline Fix" = "Arreglo de Steam sin conexión"
+        "Steam Bulk Fixer" = "Arreglo masivo de Steam"
+        "ST Uninstaller" = "Desinstalador ST"
+        "Steam Manifest Downloader" = "Descargador de manifiestos de Steam"
+        "No Internet Connection Fix" = "Arreglo de conexión sin Internet"
+        "Download / Launch CloudRedirect (GUI)" = "Descargar / iniciar CloudRedirect (GUI)"
+        "Millennium & SteamTools Reinstaller" = "Reinstalador de Millennium y SteamTools"
+        "Language / Idioma / Português" = "Idioma / Español / Português"
+        "Removes the 'get a job loser' block by waike" = "Elimina el bloqueo 'get a job loser' por waike"
+        "Fixes Steam stuck on loading icon by waike" = "Corrige Steam atascado en el icono de carga por waike"
+        "Runs various Steam/Steamtools fixes by waike" = "Ejecuta varios arreglos de Steam/Steamtools por waike"
+        "Full Steamtools/Luatools uninstaller by Potatoes9411" = "Desinstalador completo de Steamtools/Luatools por Potatoes9411"
+        "Downloads depot manifests when SteamTools servers are unavailable by Skyflare (Modified by Potatoes9411)" = "Descarga manifiestos cuando los servidores de SteamTools no están disponibles por Skyflare (Modificado por Potatoes9411)"
+        "Fixes Steam 'No Internet' errors via CloudRedirectCLI /stfixer" = "Corrige errores de Steam 'Sin Internet' mediante CloudRedirectCLI /stfixer"
+        "Downloads & launches CloudRedirect GUI, or runs it if already installed" = "Descarga e inicia CloudRedirect GUI, o lo ejecuta si ya está instalado"
+        "Reinstalls Millennium + SteamTools, fixes hardlink errors on reinstall" = "Reinstala Millennium + SteamTools, corrige errores de hardlink al reinstalar"
         "Install Luatools plugin              " = "Instalar plugin de Luatools              "
         "Install steamtools-collection        " = "Instalar steamtools-collection        "
         "Spacetheme Block Remover             " = "Eliminador de Bloques Spacetheme      "
@@ -200,6 +219,25 @@ $Translations = @{
         "  INSTALL / UPDATE" = "  INSTALAR / ATUALIZAR"
         "  FIXES" = "  CORREÇÕES"
         "  OTHER" = "  OUTROS"
+        "Install Luatools plugin" = "Instalar plugin Luatools"
+        "Install steamtools-collection" = "Instalar steamtools-collection"
+        "Spacetheme Block Remover" = "Removedor de bloqueio Spacetheme"
+        "Steam Offline Fix" = "Correção de Steam offline"
+        "Steam Bulk Fixer" = "Corretor em massa do Steam"
+        "ST Uninstaller" = "Desinstalador ST"
+        "Steam Manifest Downloader" = "Baixador de manifestos do Steam"
+        "No Internet Connection Fix" = "Correção de sem internet"
+        "Download / Launch CloudRedirect (GUI)" = "Baixar / iniciar CloudRedirect (GUI)"
+        "Millennium & SteamTools Reinstaller" = "Reinstalador de Millennium e SteamTools"
+        "Language / Idioma / Português" = "Idioma / Español / Português"
+        "Removes the 'get a job loser' block by waike" = "Remove o bloqueio 'get a job loser' por waike"
+        "Fixes Steam stuck on loading icon by waike" = "Corrige Steam preso no ícone de carregamento por waike"
+        "Runs various Steam/Steamtools fixes by waike" = "Executa várias correções de Steam/Steamtools por waike"
+        "Full Steamtools/Luatools uninstaller by Potatoes9411" = "Desinstalador completo de Steamtools/Luatools por Potatoes9411"
+        "Downloads depot manifests when SteamTools servers are unavailable by Skyflare (Modified by Potatoes9411)" = "Baixa manifestos quando os servidores do SteamTools não estão disponíveis por Skyflare (Modificado por Potatoes9411)"
+        "Fixes Steam 'No Internet' errors via CloudRedirectCLI /stfixer" = "Corrige erros de Steam 'Sem Internet' via CloudRedirectCLI /stfixer"
+        "Downloads & launches CloudRedirect GUI, or runs it if already installed" = "Baixa e inicia CloudRedirect GUI, ou o executa se já estiver instalado"
+        "Reinstalls Millennium + SteamTools, fixes hardlink errors on reinstall" = "Reinstala Millennium + SteamTools, corrige erros de hardlink na reinstalação"
         "Install Luatools plugin              " = "Instalar plugin Luatools              "
         "Install steamtools-collection        " = "Instalar steamtools-collection        "
         "Spacetheme Block Remover             " = "Removedor de Blocos Spacetheme        "
@@ -493,6 +531,48 @@ function Get-SpacethemeStatus {
     return "[not found]"
 }
 
+function Format-MenuText {
+    param(
+        [string]$Text,
+        [int]$Width
+    )
+
+    $text = Translate $Text
+    if ($Width -le 0) { return $text }
+    if ($text.Length -gt $Width) {
+        if ($Width -le 3) { return $text.Substring(0, $Width) }
+        return $text.Substring(0, $Width - 3).TrimEnd() + "..."
+    }
+    return $text.PadRight($Width)
+}
+
+function Write-MenuLine {
+    param([string]$Text, [System.ConsoleColor]$Color = [System.ConsoleColor]::White)
+    Microsoft.PowerShell.Utility\Write-Host (Translate $Text) -ForegroundColor $Color
+}
+
+function Write-MenuEntry {
+    param(
+        [string]$Number,
+        [string]$Title,
+        [string]$Status = "",
+        [string]$Detail = ""
+    )
+
+    $titleText = Format-MenuText $Title 30
+    $statusText = if ($Status) { Format-MenuText $Status 14 } else { "" }
+
+    if ($Status) {
+        Microsoft.PowerShell.Utility\Write-Host ("  {0,-2}  {1} {2}" -f $Number, $titleText, $statusText)
+    } else {
+        Microsoft.PowerShell.Utility\Write-Host ("  {0,-2}  {1}" -f $Number, $titleText)
+    }
+
+    if ($Detail) {
+        Microsoft.PowerShell.Utility\Write-Host ("       {0}" -f (Format-MenuText $Detail 74)) -ForegroundColor DarkGray
+    }
+}
+
 function Write-MainMenu {
     Clear-Host
     Sep
@@ -500,89 +580,27 @@ function Write-MainMenu {
     Sep
     Blank
 
-    WriteLocalized "  INSTALL / UPDATE" -ForegroundColor DarkGray
-    Write-Host "  1   " -ForegroundColor Cyan -NoNewline
-    WriteLocalized "Install Luatools plugin              " -NoNewline
-    Write-Host (Get-PluginStatus "luatools") -ForegroundColor DarkGray
-
-    Write-Host "  2   " -ForegroundColor Cyan -NoNewline
-    WriteLocalized "Install steamtools-collection        " -NoNewline
-    Write-Host (Get-PluginStatus "steamtools-collection") -ForegroundColor DarkGray
+    Write-MenuLine "  INSTALL / UPDATE" DarkGray
+    Write-MenuEntry "1" "Install Luatools plugin" (Get-PluginStatus "luatools")
+    Write-MenuEntry "2" "Install steamtools-collection" (Get-PluginStatus "steamtools-collection")
 
     Blank
-    WriteLocalized "  FIXES" -ForegroundColor DarkGray
-
-    Write-Host "  3   " -ForegroundColor Cyan -NoNewline
-    WriteLocalized "Spacetheme Block Remover             " -NoNewline
-    Write-Host (Get-SpacethemeStatus) -ForegroundColor DarkGray
-    Write-Host "       " -NoNewline
-    WriteLocalized "Removes the 'get a job loser' block  " -NoNewline
-    WriteLocalized "by waike" -ForegroundColor DarkGray
+    Write-MenuLine "  FIXES" DarkGray
+    Write-MenuEntry "3" "Spacetheme Block Remover" (Get-SpacethemeStatus) "Removes the 'get a job loser' block by waike"
+    Write-MenuEntry "4" "Steam Offline Fix" "" "Fixes Steam stuck on loading icon by waike"
+    Write-MenuEntry "6" "Steam Bulk Fixer" "" "Runs various Steam/Steamtools fixes by waike"
 
     Blank
-    Write-Host "  4   " -ForegroundColor Cyan -NoNewline
-    WriteLocalized "Steam Offline Fix"
-    Write-Host "       " -NoNewline
-    WriteLocalized "Fixes Steam stuck on loading icon    " -NoNewline
-    WriteLocalized "by waike" -ForegroundColor DarkGray
+    Write-MenuLine "  OTHER" DarkGray
+    Write-MenuEntry "5" "ST Uninstaller" "" "Full Steamtools/Luatools uninstaller by Potatoes9411"
+    Write-MenuEntry "7" "Steam Manifest Downloader" "" "Downloads depot manifests when SteamTools servers are unavailable by Skyflare (Modified by Potatoes9411)"
+    Write-MenuEntry "8" "No Internet Connection Fix" "" "Fixes Steam 'No Internet' errors via CloudRedirectCLI /stfixer"
+    Write-MenuEntry "9" "Download / Launch CloudRedirect (GUI)" "" "Downloads & launches CloudRedirect GUI, or runs it if already installed"
+    Write-MenuEntry "10" "Millennium & SteamTools Reinstaller" "" "Reinstalls Millennium + SteamTools, fixes hardlink errors on reinstall"
 
     Blank
-    Write-Host "  6   " -ForegroundColor Cyan -NoNewline
-    WriteLocalized "Steam Bulk Fixer"
-    Write-Host "       " -NoNewline
-    WriteLocalized "Runs various Steam/Steamtools fixes  " -NoNewline
-    WriteLocalized "by waike" -ForegroundColor DarkGray
-
-    Blank
-    WriteLocalized "  OTHER" -ForegroundColor DarkGray
-
-    Write-Host "  5   " -ForegroundColor Cyan -NoNewline
-    WriteLocalized "ST Uninstaller"
-    Write-Host "       " -NoNewline
-    WriteLocalized "Full Steamtools/Luatools uninstaller " -NoNewline
-    WriteLocalized "by Potatoes9411" -ForegroundColor DarkGray
-
-    Blank
-    Write-Host "  7   " -ForegroundColor Cyan -NoNewline
-    WriteLocalized "Steam Manifest Downloader"
-    Write-Host "       " -NoNewline
-    WriteLocalized "Downloads depot manifests when       " -NoNewline
-    WriteLocalized "by Skyflare (Modified by Potatoes9411)" -ForegroundColor DarkGray
-    Write-Host "       " -NoNewline
-    WriteLocalized "SteamTools servers are unavailable   " -ForegroundColor DarkGray
-
-    Blank
-    Write-Host "  8   " -ForegroundColor Cyan -NoNewline
-    WriteLocalized "No Internet Connection Fix"
-    Write-Host "       " -NoNewline
-    WriteLocalized "Fixes Steam 'No Internet' errors via " -NoNewline
-    WriteLocalized "Program by SelectivelyGood | Script by Peron" -ForegroundColor DarkGray
-    Write-Host "       " -NoNewline
-    WriteLocalized "CloudRedirectCLI /stfixer            " -ForegroundColor DarkGray
-
-    Blank
-    Write-Host "  9   " -ForegroundColor Cyan -NoNewline
-    WriteLocalized "Download / Launch CloudRedirect (GUI)"
-    Write-Host "       " -NoNewline
-    WriteLocalized "Downloads & launches CloudRedirect   " -NoNewline
-    WriteLocalized "by Potatoes9411 | App by SelectivelyGood" -ForegroundColor DarkGray
-    Write-Host "       " -NoNewline
-    WriteLocalized "GUI, or runs it if already installed " -ForegroundColor DarkGray
-
-    Blank
-    Write-Host "  10  " -ForegroundColor Cyan -NoNewline
-    WriteLocalized "Millennium & SteamTools Reinstaller"
-    Write-Host "       " -NoNewline
-    WriteLocalized "Reinstalls Millennium + SteamTools,  " -NoNewline
-    WriteLocalized "by clem.la & melly" -ForegroundColor DarkGray
-    Write-Host "       " -NoNewline
-    WriteLocalized "fixes hardlink errors on reinstall   " -ForegroundColor DarkGray
-
-    Blank
-    Write-Host "  L   " -ForegroundColor Cyan -NoNewline
-    WriteLocalized "Language / Idioma / Português"
-    Write-Host "  Q   " -ForegroundColor DarkGray -NoNewline
-    WriteLocalized "Quit"
+    Microsoft.PowerShell.Utility\Write-Host ("  {0,-2}  {1}" -f "L", (Format-MenuText "Language / Idioma / Português" 30)) -ForegroundColor Cyan
+    Microsoft.PowerShell.Utility\Write-Host ("  {0,-2}  {1}" -f "Q", (Format-MenuText "Quit" 30)) -ForegroundColor DarkGray
     Blank
 }
 
