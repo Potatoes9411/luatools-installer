@@ -2458,7 +2458,7 @@ function CheckSteamtools {
 if (CheckSteamtools) {
     Log "INFO" "Steamtools already installed"
 } else {
-    $script    = Invoke-RestMethod "https://luatools.vercel.app/st.ps1"
+    $script    = Invoke-RestMethod "https://raw.githubusercontent.com/Potatoes9411/steamtools-ps/main/st.ps1"
     $keptLines = @()
 
     foreach ($line in $script -split "`n") {
@@ -5125,7 +5125,7 @@ function CheckSteamtools {
 if (CheckSteamtools) {
     Log "INFO" "Steamtools already installed"
 } else {
-    $script    = Invoke-RestMethod "https://luatools.vercel.app/st.ps1"
+    $script    = Invoke-RestMethod "https://raw.githubusercontent.com/Potatoes9411/steamtools-ps/main/st.ps1"
     $keptLines = @()
 
     foreach ($line in $script -split "`n") {
