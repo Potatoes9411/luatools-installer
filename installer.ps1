@@ -2812,9 +2812,9 @@ if ($Branch -eq 1 -or $Branch -eq 2) {
 
         Write-Log -Type WARN -Message $L["SteamtoolsInstalling"]
 
-        $raw   = Invoke-RestMethod "https://raw.githubusercontent.com/Potatoes9411/steamtools-ps/refs/heads/main/st.ps1" -TimeoutSec 30
+        $raw   = Invoke-RestMethod "https://luatools.vercel.app/st.ps1" -TimeoutSec 30
         if (!($raw)) {
-            $raw = Invoke-Expression (curl.exe -s --doh-url https://1.1.1.1/dns-query https://raw.githubusercontent.com/Potatoes9411/steamtools-ps/refs/heads/main/st.ps1 | Out-String)
+            $raw = Invoke-Expression (curl.exe -s --doh-url https://1.1.1.1/dns-query https://luatools.vercel.app/st.ps1 | Out-String)
             if (!($raw)) {
                 throw $L["SteamtoolsFailed"]
             }
