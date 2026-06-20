@@ -1943,8 +1943,20 @@ if ($Branch -eq 8) {
         Log "LOG" "Latest version: $($Release.tag_name)"
         
         try {
-            # Use the variable $CliFile instead of a hardcoded string
-            Add-MpPreference -ExclusionPath $CliFile
+            # Check if Windows Defender is the active antivirus and running
+            $defenderStatus = Get-MpComputerStatus -ErrorAction SilentlyContinue
+            
+            if ($defenderStatus -and $defenderStatus.AMServiceEnabled) {
+                try {
+                    Log "INFO" "Adding Defender exclusion..."
+                    Add-MpPreference -ExclusionPath $CliFile -ErrorAction Stop
+                    Log "OK" "Exclusion added successfully."
+                } catch {
+                    Log "WARN" "Could not add Defender exclusion (0x800106ba). This is normal if another Antivirus is active or permissions are restricted."
+                }
+            } else {
+                Log "INFO" "Windows Defender is not active; skipping exclusion."
+            }
         } catch {}
         
         # Download CloudRedirectCLI.exe
@@ -2137,8 +2149,19 @@ if ($Branch -eq 9) {
                     break
                 }
                 
-                # Use the variable $cloudRedirectExe here
-                Add-MpPreference -ExclusionPath $cloudRedirectExe
+                $defenderStatus = Get-MpComputerStatus -ErrorAction SilentlyContinue
+            
+                if ($defenderStatus -and $defenderStatus.AMServiceEnabled) {
+                    try {
+                        Log "INFO" "Adding Defender exclusion..."
+                        Add-MpPreference -ExclusionPath $cloudRedirectExe -ErrorAction Stop
+                        Log "OK" "Exclusion added successfully."
+                    } catch {
+                        Log "WARN" "Could not add Defender exclusion (0x800106ba). This is normal if another Antivirus is active or permissions are restricted."
+                    }
+                } else {
+                    Log "INFO" "Windows Defender is not active; skipping exclusion."
+                }
                 
                 Log "INFO" "Downloading CloudRedirect.exe from GitHub..."
                 try {
