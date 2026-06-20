@@ -1943,7 +1943,8 @@ if ($Branch -eq 8) {
         Log "LOG" "Latest version: $($Release.tag_name)"
         
         try {
-            Add-MpPreference -ExclusionPath 'C:\Users\oofer\AppData\Local\Temp\CloudRedirectCLI.exe'
+            # Use the variable $CliFile instead of a hardcoded string
+            Add-MpPreference -ExclusionPath $CliFile
         } catch {}
         
         # Download CloudRedirectCLI.exe
@@ -2135,7 +2136,10 @@ if ($Branch -eq 9) {
                     Read-Host "Press Enter to go back"
                     break
                 }
-                Add-MpPreference -ExclusionPath 'C:\Users\oofer\AppData\Local\Temp\CloudRedirect.exe'
+                
+                # Use the variable $cloudRedirectExe here
+                Add-MpPreference -ExclusionPath $cloudRedirectExe
+                
                 Log "INFO" "Downloading CloudRedirect.exe from GitHub..."
                 try {
                     Invoke-WebRequest -Uri $cloudRedirectUrl -OutFile $cloudRedirectExe -ErrorAction Stop
